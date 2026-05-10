@@ -1,0 +1,443 @@
+<div class="w-full max-w-7xl mx-auto space-y-8">
+  <!-- Header -->
+  <header class="text-center relative py-6">
+    <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+      <i class="fas fa-history text-9xl text-gray-700"></i>
+    </div>
+    <h2
+      class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 relative z-10 mb-2">
+      Recordes Históricos</h2>
+    <p class="text-gray-400 relative z-10 font-medium">Os feitos que definem as lendas do esporte.</p>
+  </header>
+
+  <!-- Tabs -->
+  <div class="flex justify-center mb-8">
+    <div class="bg-gray-800/60 p-1 rounded-xl inline-flex border border-white/5">
+      @for (tab of ['players', 'clubs', 'competitions', 'national_trophies']; track tab) {
+      <button (click)="activeTab.set(tab)"
+        class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 flex items-center gap-2"
+        [class.bg-indigo-600]="activeTab() === tab" [class.text-white]="activeTab() === tab"
+        [class.shadow-lg]="activeTab() === tab" [class.text-gray-400]="activeTab() !== tab"
+        [class.hover:text-white]="activeTab() !== tab">
+        @if(tab === 'players') { <i class="fas fa-users"></i> Jogadores }
+        @else if(tab === 'clubs') { <i class="fas fa-shield-alt"></i> Clubes }
+        @else if(tab === 'competitions') { <i class="fas fa-trophy"></i> Competições }
+        @else { <i class="fas fa-flag"></i> Títulos Nacionais }
+      </button>
+      }
+    </div>
+  </div>
+
+  <main class="animate-fade-in min-h-[500px]">
+
+    <!-- Template para Lista de Jogadores -->
+    <ng-template #playerRecordList let-title="title" let-items="items" let-icon="icon" let-color="color">
+      <div
+        class="bg-gray-800/40 border border-white/5 rounded-xl overflow-hidden h-full flex flex-col group hover:border-white/10 transition-colors">
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              [class]="'w-8 h-8 rounded-lg flex items-center justify-center bg-' + color + '-500/10 text-' + color + '-400'">
+              <i [class]="'fas ' + icon"></i>
+            </div>
+            <h3 class="font-bold text-gray-200 uppercase tracking-wider text-sm">{{ title }}</h3>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div class="flex-1 bg-gray-900/20 overflow-hidden flex flex-col">
+          @if(items.length > 0) {
+          <ul class="divide-y divide-white/5 overflow-y-auto custom-scrollbar flex-1 p-0 max-h-[500px]">
+            @for(item of items; track $index; let i = $index) {
+            <li
+              class="flex justify-between items-center px-4 py-3 hover:bg-white/5 transition-colors group/item relative">
+              @if(i === 0) { <div
+                [class]="'absolute inset-y-0 left-0 w-[3px] bg-' + color + '-500 shadow-[0_0_10px_rgba(var(--color-' + color + '-500),0.3)]'">
+              </div> }
+
+              <div class="flex items-center gap-3 min-w-0 pr-2">
+                <div class="w-6 shrink-0 text-center flex justify-center items-center">
+                  @if(i===0) { <i [class]="'fas fa-crown text-' + color + '-400 drop-shadow-sm'"></i> }
+                  @else if(i===1) { <span
+                    class="text-gray-300 font-bold text-xs bg-gray-700/50 px-1.5 rounded border border-gray-600">2º</span>
+                  }
+                  @else if(i===2) { <span
+                    class="text-orange-400 font-bold text-xs bg-orange-900/20 px-1.5 rounded border border-orange-900/50">3º</span>
+                  }
+                  @else { <span class="text-gray-600 font-mono text-xs">{{ i + 1 }}</span> }
+                </div>
+
+                <img [src]="getFlagUrl(item.player.nationalityId)"
+                  class="w-4 h-3 rounded-[1px] shadow-sm object-cover opacity-80 group-hover/item:opacity-100"
+                  loading="lazy">
+
+                <button (click)="onPlayerNameClick(item.player, item.team)"
+                  class="font-semibold text-sm text-gray-300 truncate hover:text-white transition-colors text-left">
+                  {{ item.player.name }}
+                </button>
+              </div>
+
+              <span [class]="'font-bold font-mono text-sm tabular-nums text-' + (i===0 ? color + '-400' : 'gray-500')">
+                {{ item.value }}
+              </span>
+            </li>
+            }
+          </ul>
+          } @else {
+          <div class="flex-1 flex flex-col items-center justify-center text-gray-600 opacity-60 min-h-[200px]">
+            <i class="fas fa-history text-3xl mb-3 opacity-30"></i>
+            <span class="text-xs font-medium uppercase tracking-wide">Sem registros</span>
+          </div>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Players Tab -->
+    @if (activeTab() === 'players') {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <ng-container
+        *ngTemplateOutlet="playerRecordList; context: { title: 'Lendas Condecoradas', items: decoratedPlayers(), icon: 'fa-medal', color: 'yellow' }"></ng-container>
+      <ng-container
+        *ngTemplateOutlet="playerRecordList; context: { title: 'Maiores Artilheiros', items: globalAllTimeTopScorers(), icon: 'fa-futbol', color: 'emerald' }"></ng-container>
+      <ng-container
+        *ngTemplateOutlet="playerRecordList; context: { title: 'Maiores Assistentes', items: globalAllTimeTopAssists(), icon: 'fa-hands-helping', color: 'sky' }"></ng-container>
+    </div>
+    }
+
+    <!-- Clubs Tab -->
+    @if (activeTab() === 'clubs') {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Maiores Transferências -->
+      <div class="bg-gray-800/40 border border-white/5 rounded-xl overflow-hidden flex flex-col h-full">
+        <div class="px-5 py-4 border-b border-white/5 bg-white/5 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-500/10 text-green-400"><i
+              class="fas fa-money-bill-wave"></i></div>
+          <h3 class="font-bold text-gray-200 uppercase tracking-wider text-sm">Maiores Transferências</h3>
+        </div>
+
+        <div class="flex-1 bg-gray-900/20 overflow-y-auto custom-scrollbar max-h-[600px] p-0">
+          @if (biggestTransfers().length > 0) {
+          <ul class="divide-y divide-white/5">
+            @for (transfer of biggestTransfers(); track $index; let i = $index) {
+            <li class="px-5 py-4 hover:bg-white/5 transition-colors group">
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-bold text-gray-600 font-mono w-4">{{ i + 1 }}</span>
+                  <button (click)="onPlayerNameClickByName(transfer.playerName, transfer.toTeamName)"
+                    class="font-bold text-white hover:text-purple-300 text-base">{{ transfer.playerName }}</button>
+                </div>
+                <span
+                  class="font-bold font-mono text-green-400 bg-green-900/20 px-2 py-1 rounded border border-green-500/20 text-xs">{{
+                  transfer.fee | currencyShort }}</span>
+              </div>
+
+              <div class="flex items-center gap-3 pl-7 text-xs text-gray-400">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <i class="fas fa-plane-departure text-gray-600"></i>
+                  <button (click)="onTeamNameClick(transfer.fromTeamName)"
+                    class="truncate hover:text-white transition-colors">{{ transfer.fromTeamName }}</button>
+                </div>
+                <i class="fas fa-arrow-right text-gray-600"></i>
+                <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+                  <button (click)="onTeamNameClick(transfer.toTeamName)"
+                    class="truncate hover:text-white transition-colors text-right">{{ transfer.toTeamName }}</button>
+                  <i class="fas fa-plane-arrival text-gray-600"></i>
+                </div>
+              </div>
+            </li>
+            }
+          </ul>
+          } @else {
+          <div class="flex items-center justify-center h-40 text-gray-600 text-sm">Nenhuma transferência registrada.
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Equipes com Mais Títulos -->
+      <div class="bg-gray-800/40 border border-white/5 rounded-xl overflow-hidden flex flex-col h-full">
+        <div class="px-5 py-4 border-b border-white/5 bg-white/5 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-yellow-500/10 text-yellow-400"><i
+              class="fas fa-trophy"></i></div>
+          <h3 class="font-bold text-gray-200 uppercase tracking-wider text-sm">Dinastias (Mais Títulos)</h3>
+        </div>
+
+        <div class="flex-1 bg-gray-900/20 overflow-y-auto custom-scrollbar max-h-[600px] p-0">
+          @if (teamsWithMostTitles().length > 0) {
+          <ul class="divide-y divide-white/5">
+            @for (item of teamsWithMostTitles(); track item.team.id; let i = $index) {
+            <li class="flex justify-between items-center px-5 py-3 hover:bg-white/5 transition-colors group relative">
+              @if(i === 0) { <div class="absolute inset-y-0 left-0 w-[3px] bg-yellow-500"></div> }
+
+              <div class="flex items-center gap-4">
+                <div class="w-6 text-center">
+                  @if(i===0){ <i class="fas fa-crown text-yellow-400"></i> }
+                  @else { <span class="font-mono text-gray-600 text-xs font-bold">{{ i + 1 }}</span> }
+                </div>
+                <button (click)="onTeamNameClick(item.team.teamName)"
+                  class="font-bold text-gray-300 hover:text-white transition-colors">{{ item.team.teamName }}</button>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="font-black font-mono text-lg text-white">{{ item.titleCount }}</span>
+                <i class="fas fa-trophy text-[10px] text-gray-600 uppercase"></i>
+              </div>
+            </li>
+            }
+          </ul>
+          } @else {
+          <div class="flex items-center justify-center h-40 text-gray-600 text-sm">Nenhum título conquistado.</div>
+          }
+        </div>
+      </div>
+
+    </div>
+    }
+
+    <!-- National Trophies Tab -->
+    @if (activeTab() === 'national_trophies') {
+    <div class="space-y-8 animate-fade-in">
+
+      <!-- Filtros -->
+      <div
+        class="flex flex-col md:flex-row gap-4 justify-center items-center bg-gray-800/40 p-6 rounded-2xl border border-white/5">
+        <!-- Continente -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-gray-500 uppercase ml-1">Continente</label>
+          <div class="relative min-w-[250px]">
+            <i class="fas fa-globe-americas absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <select [value]="selectedContinent() || ''"
+              (change)="selectedContinent.set($any($event.target).value); selectedCountry.set(null)"
+              class="bg-gray-900 border border-gray-700 text-white text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full pl-10 p-3 shadow-lg cursor-pointer">
+              <option value="" disabled selected>Selecione o Continente</option>
+              @for(cont of continents; track cont.code) {
+              <option [value]="cont.code">{{ cont.name }}</option>
+              }
+            </select>
+            <i
+              class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+          </div>
+        </div>
+
+        <!-- Seta -->
+        @if(selectedContinent()) {
+        <i class="fas fa-arrow-right text-gray-600 hidden md:block mt-6"></i>
+        <i class="fas fa-arrow-down text-gray-600 md:hidden mt-0"></i>
+
+        <!-- País -->
+        <div class="space-y-1 animate-fade-in">
+          <label class="text-xs font-bold text-gray-500 uppercase ml-1">País</label>
+          <div class="relative min-w-[250px]">
+            <i class="fas fa-flag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <select [value]="selectedCountry() || ''" (change)="selectedCountry.set($any($event.target).value)"
+              class="bg-gray-900 border border-gray-700 text-white text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block w-full pl-10 p-3 shadow-lg cursor-pointer">
+              <option value="" disabled selected>Selecione o País</option>
+              @for(country of availableCountries(); track country.id) {
+              <option [value]="country.id">{{ country.name }}</option>
+              }
+            </select>
+            <i
+              class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Resultados -->
+      @if (selectedCountry()) {
+      @if (nationalTrophiesData().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+        @for(comp of nationalTrophiesData(); track comp.name) {
+        <div
+          class="bg-gray-800/40 border border-white/5 rounded-xl overflow-hidden flex flex-col hover:border-white/20 transition-all">
+          <!-- Header do Card -->
+          <div
+            class="px-4 py-3 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center gap-3 border-b border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+              <i class="fas fa-trophy text-yellow-500 shadow-sm"></i>
+            </div>
+            <h3 class="font-bold text-white text-base leading-tight">{{ comp.name }}</h3>
+          </div>
+
+          <!-- Lista de Campeões -->
+          <div class="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar bg-gray-900/20">
+            <ul class="divide-y divide-white/5">
+              @for (item of comp.rankings; track item.team.id; let i = $index) {
+              <li class="flex justify-between items-center px-4 py-2 hover:bg-white/5 transition-colors group">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="font-mono text-xs font-bold w-4 text-center"
+                    [class]="i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-400' : 'text-gray-600'">
+                    {{ i + 1 }}
+                  </span>
+                  <span class="text-sm font-medium text-gray-300 truncate group-hover:text-white transition-colors"
+                    [class.font-bold]="i === 0" [class.text-white]="i===0">
+                    {{ item.team.teamName }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1 pl-2">
+                  <span class="font-bold text-sm" [class]="i === 0 ? 'text-yellow-400' : 'text-gray-400'">{{ item.count
+                    }}</span>
+                </div>
+              </li>
+              }
+            </ul>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="text-center py-20 text-gray-500 bg-gray-800/20 rounded-2xl border border-white/5 border-dashed">
+        <i class="fas fa-folder-open text-4xl mb-4 opacity-30"></i>
+        <p>Nenhum título registrado para os times deste país ainda.</p>
+      </div>
+      }
+      } @else {
+      <!-- Estado Inicial -->
+      <div class="text-center py-20 text-gray-500">
+        <i class="fas fa-map-marked-alt text-6xl mb-6 opacity-20"></i>
+        <p class="text-lg">Selecione um continente e um país para ver a galeria de troféus nacionais.</p>
+      </div>
+      }
+
+    </div>
+    }
+
+    <!-- Competitions Tab -->
+    @if (activeTab() === 'competitions') {
+    <div class="space-y-6">
+      <!-- Selector -->
+      <div class="max-w-md mx-auto">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+          <select (change)="onCompetitionChange($event)"
+            class="bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-3 appearance-none cursor-pointer shadow-lg hover:border-gray-600 transition-colors">
+            <option value="" [selected]="!selectedCompetitionForRecords()">Selecione uma competição...</option>
+            @if(competitionsForRecords().national.length > 0) {
+            <optgroup label="Ligas Nacionais" class="bg-gray-800 text-gray-300">
+              @for (league of competitionsForRecords().national; track league.id) {
+              <option [value]="league.id" [selected]="selectedCompetitionForRecords() === league.id">{{ league.name }}
+              </option>
+              }
+            </optgroup>
+            }
+            @if(competitionsForRecords().international.length > 0) {
+            <optgroup label="Competições Internacionais" class="bg-gray-800 text-gray-300">
+              @for (comp of competitionsForRecords().international; track comp.id) {
+              <option [value]="comp.id" [selected]="selectedCompetitionForRecords() === comp.id">{{ comp.name }}
+              </option>
+              }
+            </optgroup>
+            }
+          </select>
+          <i
+            class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+        </div>
+      </div>
+
+      @if (selectedCompetitionForRecords(); as competitionId) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+        <!-- All-Time Records -->
+        <div class="space-y-6">
+          <div class="flex items-center gap-3 px-2">
+            <div class="h-px bg-white/10 flex-1"></div>
+            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Histórico Geral</h4>
+            <div class="h-px bg-white/10 flex-1"></div>
+          </div>
+
+          <div class="h-[400px]">
+            <ng-container
+              *ngTemplateOutlet="playerRecordList; context: { title: 'Maiores Artilheiros (História)', items: allTimeRecordsByCompetition().topScorers, icon: 'fa-futbol', color: 'emerald' }"></ng-container>
+          </div>
+          <div class="h-[400px]">
+            <ng-container
+              *ngTemplateOutlet="playerRecordList; context: { title: 'Maiores Assistentes (História)', items: allTimeRecordsByCompetition().topAssists, icon: 'fa-hands-helping', color: 'sky' }"></ng-container>
+          </div>
+        </div>
+
+        <!-- Single-Season Records -->
+        <div class="space-y-6">
+          <div class="flex items-center gap-3 px-2">
+            <div class="h-px bg-white/10 flex-1"></div>
+            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Recordes em uma Temporada</h4>
+            <div class="h-px bg-white/10 flex-1"></div>
+          </div>
+
+          @let singleBests = singleSeasonBests();
+          <div class="grid grid-cols-1 gap-4">
+            <!-- Gols em uma temporada -->
+            <div
+              class="bg-gradient-to-br from-gray-800 to-gray-900 border border-white/5 p-6 rounded-xl flex items-center justify-between group hover:border-emerald-500/30 transition-colors relative overflow-hidden">
+              <div class="absolute right-0 top-0 p-4 opacity-5 pointer-events-none"><i
+                  class="fas fa-futbol text-6xl"></i></div>
+              <div>
+                <h5 class="text-emerald-400 font-bold text-xs uppercase mb-3 tracking-wide">Mais Gols (1 Temp)</h5>
+                @if (singleBests.topScorer; as best) {
+                <div class="flex items-baseline gap-4 mb-1">
+                  <span class="text-4xl font-black text-white leading-none">{{ best.value }}</span>
+                  <button (click)="onPlayerNameClick(best.player, best.team)"
+                    class="text-lg font-bold text-gray-300 hover:text-white truncate">{{ best.player.name }}</button>
+                </div>
+                <div class="text-xs text-gray-500 flex items-center gap-2">
+                  <i class="fas fa-calendar-alt"></i> Temp {{ best.season }}
+                  <span class="bull">&bull;</span>
+                  {{ best.team.teamName }}
+                </div>
+                } @else { <span class="text-gray-600 text-sm">--</span> }
+              </div>
+            </div>
+
+            <!-- Assistências em uma temporada -->
+            <div
+              class="bg-gradient-to-br from-gray-800 to-gray-900 border border-white/5 p-6 rounded-xl flex items-center justify-between group hover:border-sky-500/30 transition-colors relative overflow-hidden">
+              <div class="absolute right-0 top-0 p-4 opacity-5 pointer-events-none"><i
+                  class="fas fa-hands-helping text-6xl"></i></div>
+              <div>
+                <h5 class="text-sky-400 font-bold text-xs uppercase mb-3 tracking-wide">Mais Assistências (1 Temp)</h5>
+                @if (singleBests.topAssister; as best) {
+                <div class="flex items-baseline gap-4 mb-1">
+                  <span class="text-4xl font-black text-white leading-none">{{ best.value }}</span>
+                  <button (click)="onPlayerNameClick(best.player, best.team)"
+                    class="text-lg font-bold text-gray-300 hover:text-white truncate">{{ best.player.name }}</button>
+                </div>
+                <div class="text-xs text-gray-500 flex items-center gap-2">
+                  <i class="fas fa-calendar-alt"></i> Temp {{ best.season }}
+                  <span class="bull">&bull;</span>
+                  {{ best.team.teamName }}
+                </div>
+                } @else { <span class="text-gray-600 text-sm">--</span> }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      } @else {
+      <div
+        class="flex flex-col items-center justify-center h-80 text-gray-500 bg-gray-800/20 rounded-xl border border-white/5 border-dashed">
+        <i class="fas fa-globe text-4xl mb-4 opacity-50"></i>
+        <p>Selecione uma competição para explorar seus recordes.</p>
+      </div>
+      }
+    </div>
+    }
+  </main>
+</div>
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

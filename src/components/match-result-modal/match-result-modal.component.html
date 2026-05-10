@@ -1,0 +1,77 @@
+<div class="fixed inset-0 bg-black/90 backdrop-blur-md flex justify-center items-center z-[100] p-4 animate-fade-in"
+  (click)="onCancel()">
+  <div
+    class="w-full max-w-md bg-gray-900 rounded-[2rem] shadow-2xl border border-white/10 overflow-hidden transform animate-scale-in"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <header class="p-6 border-b border-white/5 bg-gray-800/50 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+          <i class="fas fa-edit text-indigo-400 text-xs"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider">Definir Placar</h3>
+          <p class="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em]">Resultado Manual</p>
+        </div>
+      </div>
+      @if (data().leg) {
+      <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 text-[10px] font-black rounded uppercase border border-indigo-500/20">
+        Jogo de {{ data().leg === 1 ? 'Ida' : 'Volta' }}
+      </span>
+      }
+    </header>
+
+    <!-- Content -->
+    <div class="p-8">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <!-- Home Team -->
+        <div class="flex-1 flex flex-col items-center gap-3">
+          <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner overflow-hidden">
+            <img [src]="'assets/logos/' + data().homeTeam.id + '.png'" 
+                 class="w-10 h-10 object-contain drop-shadow-lg"
+                 onerror="this.src='assets/placeholder_logo.png'">
+          </div>
+          <span class="text-xs font-black text-center text-white uppercase tracking-tight leading-tight h-8 flex items-center">
+            {{ data().homeTeam.name }}
+          </span>
+          <input type="number" [(ngModel)]="homeScore" 
+                 class="w-16 h-16 bg-gray-800 border-2 border-white/10 text-center text-3xl font-black text-white rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all select-all">
+        </div>
+
+        <!-- VS Divider -->
+        <div class="flex flex-col items-center gap-1 opacity-20 mt-16">
+          <div class="w-1 h-1 bg-white rounded-full"></div>
+          <div class="w-1 h-1 bg-white rounded-full"></div>
+          <div class="w-1 h-1 bg-white rounded-full"></div>
+        </div>
+
+        <!-- Away Team -->
+        <div class="flex-1 flex flex-col items-center gap-3">
+          <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner overflow-hidden">
+            <img [src]="'assets/logos/' + data().awayTeam.id + '.png'" 
+                 class="w-10 h-10 object-contain drop-shadow-lg"
+                 onerror="this.src='assets/placeholder_logo.png'">
+          </div>
+          <span class="text-xs font-black text-center text-white uppercase tracking-tight leading-tight h-8 flex items-center">
+            {{ data().awayTeam.name }}
+          </span>
+          <input type="number" [(ngModel)]="awayScore" 
+                 class="w-16 h-16 bg-gray-800 border-2 border-white/10 text-center text-3xl font-black text-white rounded-2xl focus:border-pink-500 focus:ring-0 transition-all select-all">
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="grid grid-cols-2 gap-3">
+        <button (click)="onCancel()" 
+                class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/5 transition-all border border-white/5">
+          Cancelar
+        </button>
+        <button (click)="onSave()" 
+                class="py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-900/40 transition-all">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

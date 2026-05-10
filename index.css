@@ -1,0 +1,156 @@
+/* premium-design-system.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Outfit:wght@300;400;700;900&display=swap');
+
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-dark: #020617;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: #f1f5f9;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    overflow-x: hidden;
+    color-scheme: dark;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.4);
+}
+
+/* Fix for Select/Option appearing white (Premium Dark Look) */
+select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 1.2em !important;
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-right: 2.5rem !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+option,
+optgroup {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+}
+
+optgroup {
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: #6366f1 !important;
+    font-style: normal !important;
+}
+
+select:hover {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    background-color: #1e1b4b !important;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Utility Animations */
+.animate-premium-fade {
+    animation: premiumFade 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes premiumFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Firefox Specific Select Styling */
+@-moz-document url-prefix() {
+    select {
+        color-scheme: dark;
+    }
+}
+
+/* Glassmorphism Classes */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px border-white/10;
+}
+
+/* Global Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.005); }
+}
+
+@keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(0.3deg); }
+}
+
+.animate-float {
+    animation: float 10s ease-in-out infinite;
+}
+
+.animate-float-slow {
+    animation: float-slow 15s ease-in-out infinite;
+}
+
+.animated-gradient {
+    background: radial-gradient(circle at top left, #1e1b4b, #020617 40%),
+                radial-gradient(circle at bottom right, #312e81, #020617 40%);
+    background-size: 200% 200%;
+    animation: gradientMove 15s ease infinite;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+input::placeholder {
+    color: #4b5563;
+    font-weight: 500;
+}

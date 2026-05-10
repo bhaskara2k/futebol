@@ -1,0 +1,142 @@
+<div class="p-4 space-y-6 overflow-y-auto h-full custom-scrollbar">
+  <!-- Top Scorers -->
+  <div class="bg-gray-900/50 rounded-xl border border-white/5 overflow-hidden">
+    <h3
+      class="text-sm font-bold px-4 py-3 bg-white/5 text-emerald-400 flex items-center gap-2 uppercase tracking-wider relative">
+      <i class="fas fa-futbol"></i>
+      <span>Artilheiros</span>
+      <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
+    </h3>
+    <ul class="divide-y divide-white/5">
+      @for (player of topScorers(); track player.id; let i = $index) {
+      <li class="flex items-center p-3 hover:bg-white/5 transition-colors group">
+        <!-- Rank -->
+        <div class="w-8 flex-shrink-0 text-center font-bold text-sm">
+          @if (i === 0) { <i class="fas fa-crown text-yellow-400 drop-shadow-lg text-lg"></i> }
+          @else if (i === 1) { <span class="text-gray-300 text-lg">2</span> }
+          @else if (i === 2) { <span class="text-orange-400 text-lg">3</span> }
+          @else { <span class="text-gray-600 font-mono text-xs">{{ i + 1 }}</span> }
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0 px-2">
+          <div class="flex items-center gap-2">
+            <img [src]="getFlagUrl(player.nationalityId)"
+              class="w-4 h-3 object-cover rounded-[1px] shadow-sm opacity-80 group-hover:opacity-100 transition-opacity"
+              loading="lazy">
+            <div class="truncate font-semibold text-gray-200 text-sm group-hover:text-white transition-colors">{{
+              player.name }}</div>
+          </div>
+          <div class="text-[10px] text-gray-500 truncate mt-0.5 pl-6 group-hover:text-gray-400 transition-colors">
+            {{ getPlayerTeamName(player.id) }}
+          </div>
+        </div>
+
+        <!-- Count -->
+        <div class="w-12 text-right font-black font-mono text-lg text-emerald-400 tabular-nums leading-none">
+          {{
+          statType() === 'league' ? player.stats.goals :
+          (statType() === 'cup' ? player.cupStats.goals :
+          (statType() === 'international' ? (player.internationalStats?.goals || 0) :
+          (statType() === 'youth' ? (player.youthStats?.goals || 0) :
+          (statType() === 'worldCupQualifier' ? (player.worldCupQualifierStats?.goals || 0) :
+          (player.worldCupStats?.goals || 0)))))
+          }}
+        </div>
+      </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Top Assists -->
+  <div class="bg-gray-900/50 rounded-xl border border-white/5 overflow-hidden">
+    <h3
+      class="text-sm font-bold px-4 py-3 bg-white/5 text-sky-400 flex items-center gap-2 uppercase tracking-wider relative">
+      <i class="fas fa-hands-helping"></i>
+      <span>Assistências</span>
+      <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-sky-500/50 to-transparent"></div>
+    </h3>
+    <ul class="divide-y divide-white/5">
+      @for (player of topAssists(); track player.id; let i = $index) {
+      <li class="flex items-center p-3 hover:bg-white/5 transition-colors group">
+        <div class="w-8 flex-shrink-0 text-center font-bold text-sm">
+          @if (i === 0) { <i class="fas fa-crown text-yellow-400 drop-shadow-lg text-lg"></i> }
+          @else if (i === 1) { <span class="text-gray-300 text-lg">2</span> }
+          @else if (i === 2) { <span class="text-orange-400 text-lg">3</span> }
+          @else { <span class="text-gray-600 font-mono text-xs">{{ i + 1 }}</span> }
+        </div>
+
+        <div class="flex-1 min-w-0 px-2">
+          <div class="flex items-center gap-2">
+            <img [src]="getFlagUrl(player.nationalityId)"
+              class="w-4 h-3 object-cover rounded-[1px] shadow-sm opacity-80 group-hover:opacity-100 transition-opacity"
+              loading="lazy">
+            <div class="truncate font-semibold text-gray-200 text-sm group-hover:text-white transition-colors">{{
+              player.name }}</div>
+          </div>
+          <div class="text-[10px] text-gray-500 truncate mt-0.5 pl-6 group-hover:text-gray-400 transition-colors">
+            {{ getPlayerTeamName(player.id) }}
+          </div>
+        </div>
+
+        <div class="w-12 text-right font-black font-mono text-lg text-sky-400 tabular-nums leading-none">
+          {{
+          statType() === 'league' ? player.stats.assists :
+          (statType() === 'cup' ? player.cupStats.assists :
+          (statType() === 'international' ? (player.internationalStats?.assists || 0) :
+          (statType() === 'youth' ? (player.youthStats?.assists || 0) :
+          (statType() === 'worldCupQualifier' ? (player.worldCupQualifierStats?.assists || 0) :
+          (player.worldCupStats?.assists || 0)))))
+          }}
+        </div>
+      </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Top MOTM -->
+  <div class="bg-gray-900/50 rounded-xl border border-white/5 overflow-hidden">
+    <h3
+      class="text-sm font-bold px-4 py-3 bg-white/5 text-yellow-400 flex items-center gap-2 uppercase tracking-wider relative">
+      <i class="fas fa-star"></i>
+      <span>Melhor em Campo</span>
+      <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-yellow-500/50 to-transparent"></div>
+    </h3>
+    <ul class="divide-y divide-white/5">
+      @for (player of topMotm(); track player.id; let i = $index) {
+      <li class="flex items-center p-3 hover:bg-white/5 transition-colors group">
+        <div class="w-8 flex-shrink-0 text-center font-bold text-sm">
+          @if (i === 0) { <i class="fas fa-crown text-yellow-400 drop-shadow-lg text-lg"></i> }
+          @else if (i === 1) { <span class="text-gray-300 text-lg">2</span> }
+          @else if (i === 2) { <span class="text-orange-400 text-lg">3</span> }
+          @else { <span class="text-gray-600 font-mono text-xs">{{ i + 1 }}</span> }
+        </div>
+
+        <div class="flex-1 min-w-0 px-2">
+          <div class="flex items-center gap-2">
+            <img [src]="getFlagUrl(player.nationalityId)"
+              class="w-4 h-3 object-cover rounded-[1px] shadow-sm opacity-80 group-hover:opacity-100 transition-opacity"
+              loading="lazy">
+            <div class="truncate font-semibold text-gray-200 text-sm group-hover:text-white transition-colors">{{
+              player.name }}</div>
+          </div>
+          <div class="text-[10px] text-gray-500 truncate mt-0.5 pl-6 group-hover:text-gray-400 transition-colors">
+            {{ getPlayerTeamName(player.id) }}
+          </div>
+        </div>
+
+        <div class="w-12 text-right font-black font-mono text-lg text-yellow-400 tabular-nums leading-none">
+          {{
+          statType() === 'league' ? player.stats.motm :
+          (statType() === 'cup' ? player.cupStats.motm :
+          (statType() === 'international' ? (player.internationalStats?.motm || 0) :
+          (statType() === 'youth' ? (player.youthStats?.motm || 0) :
+          (statType() === 'worldCupQualifier' ? (player.worldCupQualifierStats?.motm || 0) :
+          (player.worldCupStats?.motm || 0)))))
+          }}
+        </div>
+      </li>
+      }
+    </ul>
+  </div>
+</div>

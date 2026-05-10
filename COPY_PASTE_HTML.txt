@@ -1,0 +1,100 @@
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- CÓDIGO PARA COPIAR E COLAR NO app.component.html -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+<!-- ADICIONE ESTE CÓDIGO NO INÍCIO DO ARQUIVO app.component.html -->
+<!-- ANTES DE QUALQUER OUTRO CONTEÚDO -->
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+
+<!-- BOTÃO SAVE/LOAD (Fixo no canto superior direito) -->
+<div class="fixed top-4 right-4 z-50">
+  <button 
+    (click)="showSaveMenu.set(true)"
+    class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-3 rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 font-bold"
+  >
+    <i class="fas fa-save text-xl"></i>
+    <span>Salvar/Carregar</span>
+  </button>
+</div>
+
+<!-- MENU SAVE/LOAD (Modal de Save/Load) -->
+@if (showSaveMenu()) {
+  <app-save-load-menu
+    (onClose)="showSaveMenu.set(false)"
+    (onLoad)="loadGame($event)"
+    (onSaveRequest)="saveGame($event)"
+  />
+}
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- Resto do template existente continua abaixo... -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+<!-- ALTERNATIVA: Se quiser o botão em outro lugar -->
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+
+<!-- Exemplo: No menu principal, adicione um card para Save/Load -->
+<!--
+<div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-6 cursor-pointer hover:scale-105 transition-transform"
+     (click)="showSaveMenu.set(true)">
+  <div class="flex items-center gap-4">
+    <i class="fas fa-save text-5xl text-blue-300"></i>
+    <div>
+      <h3 class="text-2xl font-bold text-white">Salvar/Carregar</h3>
+      <p class="text-blue-200 mt-1">Gerencie seus saves</p>
+    </div>
+  </div>
+</div>
+-->
+
+
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+<!-- EXEMPLO COMPLETO DE INTEGRAÇÃO -->
+<!-- ──────────────────────────────────────────────────────────────────────── -->
+
+<!--
+Se seu template começa assim:
+
+<div class="min-h-screen bg-gray-900">
+  <div class="container mx-auto p-4">
+    ... seu código existente ...
+  </div>
+</div>
+
+Deve ficar assim:
+
+<div class="min-h-screen bg-gray-900">
+  
+  <!-- BOTÃO SAVE/LOAD -->
+  <div class="fixed top-4 right-4 z-50">
+    <button 
+      (click)="showSaveMenu.set(true)"
+      class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-6 py-3 rounded-xl shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 font-bold"
+    >
+      <i class="fas fa-save text-xl"></i>
+      <span>Salvar/Carregar</span>
+    </button>
+  </div>
+
+  <!-- MENU SAVE/LOAD -->
+  @if (showSaveMenu()) {
+    <app-save-load-menu
+      (onClose)="showSaveMenu.set(false)"
+      (onLoad)="loadGame($event)"
+      (onSaveRequest)="saveGame($event)"
+    />
+  }
+  
+  <div class="container mx-auto p-4">
+    ... seu código existente ...
+  </div>
+</div>
+-->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- DONE! Agora configure o Firebase em firebase.config.ts -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->

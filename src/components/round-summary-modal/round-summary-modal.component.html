@@ -1,0 +1,176 @@
+<div
+  class="fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4 transition-all duration-300 animate-in fade-in"
+  (click)="onClose()">
+  <div
+    class="w-full max-w-3xl bg-gray-900 rounded-2xl shadow-2xl border border-white/10 max-h-[90vh] flex flex-col relative overflow-hidden"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header Clean -->
+    <header
+      class="flex justify-between items-center p-6 border-b border-white/5 bg-white/5 backdrop-blur-sm z-10 sticky top-0">
+      <h2 class="text-lg font-medium text-gray-300 tracking-wide uppercase">Resumo da Partida</h2>
+      <button (click)="onClose()"
+        class="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full w-8 h-8 flex items-center justify-center">
+        <i class="fas fa-times"></i>
+      </button>
+    </header>
+
+    <main class="flex-grow overflow-y-auto z-10 custom-scrollbar">
+
+      <!-- HERO SCOREBOARD WITH PITCH BACKGROUND -->
+      <div class="relative py-12 px-6 flex flex-col items-center justify-center overflow-hidden">
+        <!-- Pitch Background SVG -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none">
+          <svg width="100%" height="100%" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="600" fill="transparent" stroke="#4f46e5" stroke-width="2" />
+            <line x1="0" y1="300" x2="400" y2="300" stroke="#4f46e5" stroke-width="2" />
+            <circle cx="200" cy="300" r="60" stroke="#4f46e5" stroke-width="2" fill="transparent" />
+            <circle cx="200" cy="300" r="2" fill="#4f46e5" />
+            <!-- Areas -->
+            <path d="M 100 0 A 100 100 0 0 1 300 0" stroke="#4f46e5" stroke-width="2" fill="transparent" />
+            <path d="M 100 600 A 100 100 0 0 0 300 600" stroke="#4f46e5" stroke-width="2" fill="transparent" />
+            <!-- Penalty Spots -->
+            <circle cx="200" cy="90" r="2" fill="#4f46e5" />
+            <circle cx="200" cy="510" r="2" fill="#4f46e5" />
+          </svg>
+        </div>
+
+        <div class="relative z-10 w-full flex justify-between items-center max-w-2xl mx-auto mb-6">
+          <!-- Home Team -->
+          <div class="flex-1 flex flex-col items-center">
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-white/5 rounded-3xl border border-white/10 p-4 mb-4 shadow-2xl backdrop-blur-sm flex items-center justify-center">
+              <img [src]="universeService.getTeamCrest(match().homeTeam)" 
+                   class="max-w-full max-h-full object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                   (error)="tryPngFallback($event)">
+            </div>
+            <h3 class="text-xl md:text-2xl font-black text-white tracking-tight leading-none mb-1">{{
+              match().homeTeam.teamName }}</h3>
+            <span class="text-[10px] font-black tracking-[0.3em] text-indigo-400/60 uppercase">MANDANTE</span>
+          </div>
+
+          <!-- VS -->
+          <div class="px-6 flex flex-col items-center gap-2">
+            <div class="h-px w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            <span class="text-white/20 font-black text-[10px] tracking-widest">VS</span>
+            <div class="h-px w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          </div>
+
+          <!-- Away Team -->
+          <div class="flex-1 flex flex-col items-center">
+            <div class="w-24 h-24 md:w-32 md:h-32 bg-white/5 rounded-3xl border border-white/10 p-4 mb-4 shadow-2xl backdrop-blur-sm flex items-center justify-center">
+              <img [src]="universeService.getTeamCrest(match().awayTeam)" 
+                   class="max-w-full max-h-full object-contain filter drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                   (error)="tryPngFallback($event)">
+            </div>
+            <h3 class="text-xl md:text-2xl font-black text-white tracking-tight leading-none mb-1">{{
+              match().awayTeam.teamName }}</h3>
+            <span class="text-[10px] font-black tracking-[0.3em] text-pink-400/60 uppercase">VISITANTE</span>
+          </div>
+        </div>
+
+        <!-- BIG SCORE -->
+        <div class="flex items-center justify-center gap-8 mb-4">
+          <span class="text-7xl md:text-8xl font-black text-white tabular-nums tracking-tight drop-shadow-2xl">{{
+            match().homeScore }}</span>
+          <div class="h-16 w-px bg-white/10 rotate-12"></div>
+          <span class="text-7xl md:text-8xl font-black text-white tabular-nums tracking-tight drop-shadow-2xl">{{
+            match().awayScore }}</span>
+        </div>
+
+        <div class="text-center text-gray-400 text-sm font-semibold tracking-wider">
+          {{ match().divisionName || 'Amistoso' }} &bull; Rodada {{ match().round + 1 }}
+        </div>
+      </div>
+
+      <!-- H2H Detalhado -->
+      <div class="mt-8 pt-8 border-t border-white/5 px-6 pb-6">
+        <h4 class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Histórico do Confronto
+        </h4>
+
+        <!-- Resumo Estatístico -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+          <div
+            class="bg-gray-800/40 p-4 rounded-lg text-center border border-white/5 flex flex-col items-center justify-center">
+            <div class="text-3xl font-black text-indigo-400">{{ h2h().teamAWins }}</div>
+            <div class="text-[10px] uppercase text-gray-500 font-bold mt-1 max-w-full truncate">Vitórias {{
+              match().homeTeam.teamName }}</div>
+          </div>
+          <div
+            class="bg-gray-800/40 p-4 rounded-lg text-center border border-white/5 flex flex-col items-center justify-center">
+            <div class="text-3xl font-black text-gray-400">{{ h2h().draws }}</div>
+            <div class="text-[10px] uppercase text-gray-500 font-bold mt-1">Empates</div>
+          </div>
+          <div
+            class="bg-gray-800/40 p-4 rounded-lg text-center border border-white/5 flex flex-col items-center justify-center">
+            <div class="text-3xl font-black text-green-400">{{ h2h().teamBWins }}</div>
+            <div class="text-[10px] uppercase text-gray-500 font-bold mt-1 max-w-full truncate">Vitórias {{
+              match().awayTeam.teamName }}</div>
+          </div>
+        </div>
+
+        <!-- Lista de Jogos Completa -->
+        @if (h2h().history.length > 0) {
+        <div class="bg-gray-900/50 rounded-xl border border-white/5 max-h-60 overflow-y-auto custom-scrollbar">
+          @for (game of h2h().history; track $index) {
+          @if (game.homeScore !== undefined) {
+          <div
+            class="flex items-center justify-between p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 text-sm">
+            <!-- Info Esquerda -->
+            <div class="flex flex-col text-left w-1/4 min-w-[80px]">
+              <span class="text-[10px] text-gray-400 font-bold uppercase truncate" title="{{ game.competitionName }}">{{
+                game.competitionName }}</span>
+              <span class="text-[10px] text-gray-600">Temp {{ game.season }}</span>
+            </div>
+
+            <!-- Placar Central -->
+            <div class="flex-1 flex justify-center items-center gap-2 sm:gap-3">
+              <div class="flex items-center justify-end gap-2 w-5/12">
+                <span class="truncate text-[10px] sm:text-xs font-black uppercase tracking-tight"
+                  [class.text-white]="game.homeScore > game.awayScore"
+                  [class.text-gray-500]="game.homeScore <= game.awayScore">{{ game.homeTeamName }}</span>
+                <img [src]="getTeamCrest(game.homeTeamName)" class="w-4 h-4 object-contain opacity-80" (error)="tryPngFallback($event)">
+              </div>
+
+              <span
+                class="bg-white/5 px-2 py-1 rounded-md text-[10px] font-black text-indigo-400 whitespace-nowrap border border-white/5 shrink-0 shadow-inner">
+                {{ game.homeScore }} - {{ game.awayScore }}
+              </span>
+
+              <div class="flex items-center justify-start gap-2 w-5/12">
+                <img [src]="getTeamCrest(game.awayTeamName)" class="w-4 h-4 object-contain opacity-80" (error)="tryPngFallback($event)">
+                <span class="truncate text-[10px] sm:text-xs font-black uppercase tracking-tight"
+                  [class.text-white]="game.awayScore > game.homeScore"
+                  [class.text-gray-500]="game.awayScore <= game.homeScore">{{ game.awayTeamName }}</span>
+              </div>
+            </div>
+          </div>
+          }
+          }
+        </div>
+        }
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>

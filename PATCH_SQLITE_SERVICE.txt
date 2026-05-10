@@ -1,0 +1,29 @@
+/**
+ * 🔧 PATCH PARA SQLITE-PERSISTENCE.SERVICE.TS
+ * 
+ * Aplique esta mudança manualmente no arquivo:
+ * src/services/sqlite-persistence.service.ts
+ * 
+ * LINHA 58: Modificar a assinatura do método initDatabase
+ */
+
+// ❌ ANTES (linha 58):
+async initDatabase(): Promise<void> {
+
+// ✅ DEPOIS:
+async initDatabase(customDbPath?: string): Promise<void> {
+
+// E ADICIONAR estas linhas logo após o try { (linha 59-62):
+
+  // Usar caminho customizado se fornecido
+  if (customDbPath) {
+    this.dbPath = customDbPath;
+  }
+
+// E MODIFICAR o console.log final (linha 80):
+
+// ❌ ANTES:
+console.log('✅ SQLite database initialized successfully');
+
+// ✅ DEPOIS:
+console.log(`✅ SQLite database initialized: ${this.dbPath}`);

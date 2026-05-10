@@ -1,0 +1,158 @@
+<div class="space-y-6">
+  <header class="text-center">
+    <h2 class="text-3xl font-bold text-white">{{ competition().name }}</h2>
+    <p class="text-indigo-300 font-semibold">Temporada {{ competition().season }}</p>
+  </header>
+
+  @if (competition().status === 'pending') {
+  <div class="text-center py-20 bg-gray-800/50 backdrop-blur-md rounded-3xl border border-white/10 shadow-2xl space-y-8">
+    <div class="flex justify-center">
+      <div class="w-24 h-24 rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse border border-indigo-500/30">
+        <i class="fas fa-trophy text-5xl text-indigo-400"></i>
+      </div>
+    </div>
+    <div>
+      <p class="text-white text-3xl font-black uppercase tracking-tighter">A competição ainda não começou</p>
+      <p class="text-gray-400 mt-2 font-medium">Os times estão se preparando para o sorteio inicial.</p>
+    </div>
+    
+    <button (click)="startCompetition()" 
+      class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-4 px-12 rounded-2xl transition-all duration-300 shadow-[0_10px_30px_rgba(79,70,229,0.3)] hover:shadow-indigo-500/50 hover:scale-105 active:scale-95 text-lg">
+      <i class="fas fa-play mr-3"></i> Iniciar Competição Agora
+    </button>
+  </div>
+  } @else {
+  <!-- Simulation Controls -->
+  <div class="flex flex-col sm:flex-row justify-center items-center mb-6 space-y-2 sm:space-y-0 sm:space-x-4">
+    @if(competition().status === 'league') {
+    <button (click)="simulateLeagueRound()"
+      class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-transform duration-200 hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+      <i class="fas fa-play"></i>
+      <span>Simular Rodada ({{ competition().currentLeagueRound + 1 }})</span>
+    </button>
+    <button (click)="advanceLeague()" [disabled]="!canAdvance()"
+      class="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-transform duration-200 hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+      <i class="fas fa-forward-step"></i>
+      <span>Avançar Rodada</span>
+    </button>
+    }
+  </div>
+  <!-- Tabs -->
+  <div class="mb-6">
+    <div class="flex justify-center border-b border-gray-700">
+      @if (competition().playoffPhase && competition().playoffPhase.rounds.length > 0) {
+      <button (click)="activeTab.set('playoffs')"
+        [class]="'px-6 py-3 font-semibold text-sm transition-colors ' + (activeTab() === 'playoffs' ? 'border-b-2 border-indigo-400 text-white' : 'text-gray-400 hover:text-white')">
+        Playoffs
+      </button>
+      }
+      <button (click)="activeTab.set('league')"
+        [disabled]="competition().status === 'playoffs' || competition().status === 'pending'"
+        [class]="'px-6 py-3 font-semibold text-sm transition-colors ' + (activeTab() === 'league' ? 'border-b-2 border-indigo-400 text-white' : 'text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:text-gray-600')">
+        Fase de Grupos
+      </button>
+      <button (click)="activeTab.set('teams')"
+        [class]="'px-6 py-3 font-semibold text-sm transition-colors ' + (activeTab() === 'teams' ? 'border-b-2 border-indigo-400 text-white' : 'text-gray-400 hover:text-white')">
+        Equipes
+      </button>
+      <button (click)="activeTab.set('knockout')"
+        [disabled]="competition().status !== 'knockout' && competition().status !== 'finished'"
+        [class]="'px-6 py-3 font-semibold text-sm transition-colors ' + (activeTab() === 'knockout' ? 'border-b-2 border-indigo-400 text-white' : 'text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:text-gray-600')">
+        Mata-mata
+      </button>
+
+      <button (click)="activeTab.set('history')" [disabled]="competition().status === 'pending'"
+        [class]="'px-6 py-3 font-semibold text-sm transition-colors ' + (activeTab() === 'history' ? 'border-b-2 border-indigo-400 text-white' : 'text-gray-400 hover:text-white disabled:cursor-not-allowed disabled:text-gray-600')">
+        Histórico
+      </button>
+    </div>
+  </div>
+
+  @if (activeTab() === 'playoffs') {
+  <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+    <app-cup-view [cup]="competition().playoffPhase!" countryName="Playoffs de Qualificação" [isInternational]="true"
+      (simulateMatch)="onSimulateCupMatch($event)" (simulateRound)="onSimulateCupRound($event)"
+      (viewMatchDetails)="onViewCupMatchDetails($event)">
+    </app-cup-view>
+  </div>
+  } @else if (activeTab() === 'league') {
+  @if((competition().continent === 'NCA' || competition().continent === 'AFR' || competition().continent === 'EUR' || competition().continent === 'ASI') &&
+  competition().id !== 'EUR_YCL') {
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <!-- Coluna Esquerda: Tabela -->
+    <div class="lg:col-span-3">
+      <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+        <h4 class="text-lg font-bold p-3 bg-gray-700 text-white text-center">{{ competition().leaguePhase[0].name }}
+        </h4>
+        <app-league-table [division]="competition().leaguePhase[0]" [isInternational]="true"
+          [competitionId]="competition().id"></app-league-table>
+      </div>
+    </div>
+    <!-- Coluna Direita: Jogos -->
+    <div class="lg:col-span-2">
+      <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+        <app-fixtures [fixtures]="competition().leaguePhase[0].fixtures[competition().currentLeagueRound] || []"
+          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)">
+        </app-fixtures>
+      </div>
+    </div>
+  </div>
+  } @else {
+  <div class="space-y-8">
+    <!-- Tables -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      @for (group of competition().leaguePhase; track group.id) {
+      <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+        <h4 class="text-lg font-bold p-3 bg-gray-700 text-white text-center">{{ group.name }}</h4>
+        <app-league-table [division]="group" [isInternational]="true"
+          [competitionId]="competition().id"></app-league-table>
+      </div>
+      }
+    </div>
+    <!-- Fixtures -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      @for (group of competition().leaguePhase; track group.id) {
+      <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+        <app-fixtures [fixtures]="group.fixtures[competition().currentLeagueRound] || []"
+          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)">
+        </app-fixtures>
+      </div>
+      }
+    </div>
+  </div>
+  }
+  } @else if (activeTab() === 'teams') {
+  <app-teams-view [divisions]="competition().leaguePhase" (viewPlayerDetails)="onViewPlayerDetails($event)"
+    (viewTeamDetails)="onViewTeamDetails($event)">
+  </app-teams-view>
+  } @else if (activeTab() === 'knockout') {
+  <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+    <app-cup-view [cup]="competition().knockoutPhase" [countryName]="competition().name" [isInternational]="true"
+      (simulateMatch)="onSimulateCupMatch($event)" (simulateRound)="onSimulateCupRound($event)"
+      (viewMatchDetails)="onViewCupMatchDetails($event)">
+    </app-cup-view>
+  </div>
+  } @else if (activeTab() === 'stats') {
+  <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
+    <div class="p-4">
+      <app-player-stats [topScorers]="competition().topScorers" [topAssists]="competition().topAssists"
+        [topMotm]="competition().topMotm" [statType]="statType()">
+      </app-player-stats>
+    </div>
+  </div>
+  } @else if (activeTab() === 'history') {
+  @if (competition().id.startsWith('WC_')) {
+  <app-history-view [competitionType]="'world_cup'" [worldCupHistory]="universeService.worldCupHistory()"
+    [worldCupRankings]="competition().rankings" [leagueTeams]="freshLeagueTeams()">
+  </app-history-view>
+  } @else {
+  <app-history-view [competitionType]="'international'" [internationalHistory]="competition().history"
+    [internationalRankings]="competition().rankings" [leagueTeams]="freshLeagueTeams()"
+    [competitionName]="competition().name"
+    [competitionTrophyType]="competition().continent === 'WORLD' || competition().id === 'AFR_NC' ? 'world' : 'international'"
+    (saveTeamDetails)="onViewTeamDetails($event)">
+  </app-history-view>
+  }
+  }
+  }
+</div>

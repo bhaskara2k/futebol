@@ -1,0 +1,96 @@
+<div class="relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 shadow-2xl animate-fade-in">
+  <!-- Header Decor -->
+  <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50">
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-300">
+      <thead class="text-xs font-bold uppercase bg-black/40 border-b border-white/10 text-gray-400 tracking-wider">
+        <tr>
+          <th scope="col" class="pl-4 pr-1 py-4 text-center w-10">Pos</th>
+          <th scope="col" class="px-3 py-4 text-left">Clube</th>
+          <th scope="col" class="px-2 py-4 text-center w-8" title="Status">S</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 text-white font-black text-base">PTS</th>
+          <th scope="col" class="px-2 py-4 text-center w-10" title="Jogos">J</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 text-green-400" title="Vitórias">V</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 text-yellow-400" title="Empates">E</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 text-red-400" title="Derrotas">D</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 hidden md:table-cell" title="Gols Pró">GP</th>
+          <th scope="col" class="px-2 py-4 text-center w-10 hidden md:table-cell" title="Gols Contra">GC</th>
+          <th scope="col" class="px-2 py-4 text-center w-10" title="Saldo de Gols">SG</th>
+          <th scope="col" class="px-4 py-4 text-center hidden sm:table-cell">Últimos 5</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        @for(team of sortedTeams(); track team.id; let i = $index) {
+        <tr class="hover:bg-white/5 transition-colors duration-150 group" [class]="getRowClass(i)">
+          <!-- 1. Posição -->
+          <td class="pl-4 pr-1 py-3 text-center font-bold text-white">{{ i + 1 }}</td>
+
+          <!-- 2. Nome -->
+          <td class="px-3 py-3 font-bold text-white whitespace-nowrap">
+            <div class="flex items-center gap-3">
+              <!-- Team Crest -->
+              <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                <img [src]="universeService.getTeamCrest(team)" 
+                  class="max-w-full max-h-full object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300"
+                  (error)="tryPngFallback($event)">
+              </div>
+              
+              @if (isInternational()) {
+              <img [src]="universeService.getFlagUrl(team.countryId)" [alt]="team.countryId"
+                class="w-4 h-3 rounded-sm object-cover shadow-sm opacity-90 group-hover:opacity-100 transition-opacity">
+              }
+              <span>{{ team.teamName }}</span>
+            </div>
+          </td>
+
+          <!-- 3. Status -->
+          <td class="px-2 py-3 text-center">
+            @if(getPositionIcon(i); as posIcon) {
+            <i class="fas text-sm" [class]="posIcon.icon + ' ' + posIcon.class" [title]="posIcon.title"></i>
+            }
+          </td>
+
+          <!-- 4. Pontos -->
+          <td class="px-2 py-3 text-center font-black text-white text-base">{{ team.stats.points }}</td>
+
+          <!-- 5. Jogos -->
+          <td class="px-2 py-3 text-center text-gray-400">{{ team.stats.matchesPlayed }}</td>
+
+          <!-- 6,7,8. V/E/D -->
+          <td class="px-2 py-3 text-center font-medium text-gray-300">{{ team.stats.wins }}</td>
+          <td class="px-2 py-3 text-center font-medium text-gray-300">{{ team.stats.draws }}</td>
+          <td class="px-2 py-3 text-center font-medium text-gray-300">{{ team.stats.losses }}</td>
+
+          <!-- 9,10. Gols -->
+          <td class="px-2 py-3 text-center text-gray-500 hidden md:table-cell">{{ team.stats.goalsFor }}</td>
+          <td class="px-2 py-3 text-center text-gray-500 hidden md:table-cell">{{ team.stats.goalsAgainst }}</td>
+
+          <!-- 11. Saldo -->
+          <td class="px-2 py-3 text-center font-bold"
+            [class]="(team.stats.goalsFor - team.stats.goalsAgainst > 0 ? 'text-green-400' : (team.stats.goalsFor - team.stats.goalsAgainst < 0 ? 'text-red-400' : 'text-gray-400'))">
+            {{ team.stats.goalsFor - team.stats.goalsAgainst }}
+          </td>
+
+          <!-- 12. Sequência -->
+          <td class="px-4 py-3 text-center hidden sm:table-cell">
+            <div class="flex items-center justify-center gap-1.5">
+              @for(res of recentForms().get(team.id); track $index) {
+              <div class="w-2 h-2 rounded-full shadow-sm ring-1 ring-black/20"
+                [class]="(res === 'W' ? 'bg-green-500 shadow-green-500/50' : (res === 'D' ? 'bg-gray-400' : 'bg-red-500 shadow-red-500/50'))"
+                [title]="res === 'W' ? 'Vitória' : (res === 'D' ? 'Empate' : 'Derrota')">
+              </div>
+              }
+              @if(!recentForms().get(team.id)?.length) {
+              <span class="text-[10px] text-gray-600">-</span>
+              }
+            </div>
+          </td>
+
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

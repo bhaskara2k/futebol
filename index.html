@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universo Futsal [v3]</title>
+  <link rel="icon" type="image/png" href="/bola_azul.png?v=999">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    /* GALA DE PREMIAÇÃO PREMIUM */
+    .gala-bg {
+      background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gala-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("https://www.transparenttextures.com/patterns/dark-matter.png");
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 40px rgba(234, 179, 8, 0.3);
+    }
+
+    .silver-glow {
+      box-shadow: 0 0 30px rgba(148, 163, 184, 0.2);
+    }
+
+    .bronze-glow {
+      box-shadow: 0 0 25px rgba(180, 83, 9, 0.2);
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    .animate-float {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .medal-shine {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .medal-shine::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) rotate(45deg);
+      }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    /* GLOBAL STYLES RESTORED */
+    .bg-gray-800\/50,
+    .bg-gray-900\/50,
+    .backdrop-blur-sm {
+      background-color: rgba(15, 23, 42, 0.4) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .fixed.inset-0.bg-gray-900\/80 {
+      background-color: rgba(0, 0, 0, 0.6) !important;
+      backdrop-filter: blur(8px) !important;
+    }
+
+    ::view-transition-old(root) {
+      animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out, 300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+    }
+
+    ::view-transition-new(root) {
+      animation: 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in, 300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+    }
+
+    @keyframes fade-in {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fade-out {
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes slide-from-right {
+      0% {
+        transform: translateX(30px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slide-to-left {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-30px);
+      }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* PREMIUM SELECT FIX */
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236366f1'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1em;
+      padding-right: 2.5rem !important;
+      color-scheme: dark;
+    }
+
+    select,
+    option {
+      background-color: #0f172a !important;
+      color: #f1f5f9 !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    option {
+      padding: 12px !important;
+      background: #0f172a !important;
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@angular/core": "https://next.esm.sh/@angular/core@^20.3.3?external=rxjs",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.3.3?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^20.3.3?external=rxjs",
+    "@angular/common/http": "https://next.esm.sh/@angular/common@^20.3.3/http?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.3.3?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.3.3?external=rxjs",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+
+</head>
+
+<body class="bg-gray-900 text-gray-200 antialiased">
+  <div id="file-marker" style="display:none">index-html-v3</div>
+  <app-root></app-root>
+</body>
+
+</html>

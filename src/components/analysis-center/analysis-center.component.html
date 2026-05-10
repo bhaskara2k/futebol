@@ -1,0 +1,383 @@
+<div class="w-full max-w-6xl mx-auto space-y-8 animate-fade-in pb-12">
+  <header class="text-center relative py-8">
+    <div
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none">
+    </div>
+    <h2 class="text-5xl font-black text-white tracking-tight relative z-10">Central de <span
+        class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500">Análise</span></h2>
+    <p class="text-lg text-gray-400 mt-2 relative z-10">O laboratório de dados para decisões estratégicas.</p>
+  </header>
+
+  <!-- Controls Container -->
+  <div class="bg-gray-900/80 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl relative z-20">
+    <div class="flex flex-col md:flex-row items-center gap-6">
+
+      <!-- Type Toggle -->
+      <div class="bg-black/40 p-1.5 rounded-xl flex items-center shrink-0 border border-white/5">
+        <button (click)="onComparisonTypeChange('teams')"
+          class="relative px-6 py-3 text-sm font-bold rounded-lg transition-all duration-300 flex items-center gap-2 overflow-hidden"
+          [class.text-white]="comparisonType() === 'teams'" [class.text-gray-400]="comparisonType() !== 'teams'">
+          @if(comparisonType() === 'teams') {
+          <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg"></div>
+          }
+          <span class="relative z-10 flex items-center gap-2"><i class="fas fa-shield-alt"></i> Clubes</span>
+        </button>
+
+        <button (click)="onComparisonTypeChange('players')"
+          class="relative px-6 py-3 text-sm font-bold rounded-lg transition-all duration-300 flex items-center gap-2 overflow-hidden"
+          [class.text-white]="comparisonType() === 'players'" [class.text-gray-400]="comparisonType() !== 'players'">
+          @if(comparisonType() === 'players') {
+          <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg"></div>
+          }
+          <span class="relative z-10 flex items-center gap-2"><i class="fas fa-user-astronaut"></i> Jogadores</span>
+        </button>
+      </div>
+
+      <!-- Selectors -->
+      <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        <!-- Selector A -->
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-500 group-hover:text-purple-400 transition-colors"></i>
+          </div>
+          <select [ngModel]="comparisonType() === 'teams' ? selectedTeamAId() : selectedPlayerAId()"
+            (change)="onItemAChange($event)"
+            class="bg-black/40 border border-gray-700/50 text-white text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all outline-none appearance-none cursor-pointer hover:bg-black/60">
+            <option [ngValue]="null">Selecione o Lado A...</option>
+            @if (comparisonType() === 'teams') {
+            @for (team of allTeams(); track team.id) {
+            <option [value]="team.id">{{ team.teamName }}</option>
+            }
+            } @else {
+            @for (player of allPlayersWithTeams(); track player.id) {
+            <option [value]="player.id">{{ player.name }} ({{ player.teamName }})</option>
+            }
+            }
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+            <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+          </div>
+        </div>
+
+        <!-- Selector B -->
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i class="fas fa-search text-gray-500 group-hover:text-purple-400 transition-colors"></i>
+          </div>
+          <select [ngModel]="comparisonType() === 'teams' ? selectedTeamBId() : selectedPlayerBId()"
+            (change)="onItemBChange($event)"
+            class="bg-black/40 border border-gray-700/50 text-white text-sm rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent block w-full pl-10 p-3.5 transition-all outline-none appearance-none cursor-pointer hover:bg-black/60">
+            <option [ngValue]="null">Selecione o Lado B...</option>
+            @if (comparisonType() === 'teams') {
+            @for (team of allTeams(); track team.id) {
+            <option [value]="team.id">{{ team.teamName }}</option>
+            }
+            } @else {
+            @for (player of allPlayersWithTeams(); track player.id) {
+            <option [value]="player.id">{{ player.name }} ({{ player.teamName }})</option>
+            }
+            }
+          </select>
+          <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+            <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison View -->
+  @if(itemA() && itemB()) {
+  <div class="animate-fade-in relative">
+    <!-- Background Decor -->
+    <div
+      class="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 rounded-3xl pointer-events-none z-0">
+    </div>
+
+    @if (comparisonType() === 'teams') {
+    @let teamA = itemA()!;
+    @let teamB = itemB()!;
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative z-10">
+
+      <!-- Team A Card -->
+      <div
+        class="lg:col-span-2 bg-gradient-to-b from-gray-900 to-black rounded-3xl border border-white/5 p-8 flex flex-col items-center shadow-2xl relative overflow-hidden group">
+        <div
+          class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50">
+        </div>
+        <!-- Initials Avatar -->
+        <div
+          class="w-32 h-32 bg-gray-800 rounded-full border-4 border-gray-700 flex items-center justify-center font-black text-4xl text-gray-500 mb-6 shadow-inner">
+          {{ teamA.teamName.substring(0,2).toUpperCase() }}
+        </div>
+        <h3 class="text-3xl font-black text-white text-center mb-1 leading-tight">{{ teamA.teamName }}</h3>
+        <p class="text-purple-400 font-bold uppercase tracking-widest text-xs mb-6">{{
+          universeService.COUNTRY_NAMES[teamA.countryId] }}</p>
+
+        <!-- Key Stat Badge -->
+        <div class="bg-gray-800/50 px-6 py-3 rounded-xl border border-white/5 text-center w-full">
+          <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Overall</div>
+          @let colorA = teamA.overall | overallColor;
+          <div class="text-3xl font-black" [class]="colorA.text">{{ teamA.overall }}</div>
+        </div>
+      </div>
+
+      <!-- VS / Stats Center -->
+      <div class="lg:col-span-1 flex flex-col items-center justify-center">
+        <div
+          class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-800 italic transform -skew-x-12 opacity-50">
+          VS</div>
+      </div>
+
+      <!-- Team B Card -->
+      <div
+        class="lg:col-span-2 bg-gradient-to-b from-gray-900 to-black rounded-3xl border border-white/5 p-8 flex flex-col items-center shadow-2xl relative overflow-hidden group">
+        <div
+          class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50">
+        </div>
+        <!-- Initials Avatar -->
+        <div
+          class="w-32 h-32 bg-gray-800 rounded-full border-4 border-gray-700 flex items-center justify-center font-black text-4xl text-gray-500 mb-6 shadow-inner">
+          {{ teamB.teamName.substring(0,2).toUpperCase() }}
+        </div>
+        <h3 class="text-3xl font-black text-white text-center mb-1 leading-tight">{{ teamB.teamName }}</h3>
+        <p class="text-indigo-400 font-bold uppercase tracking-widest text-xs mb-6">{{
+          universeService.COUNTRY_NAMES[teamB.countryId] }}</p>
+
+        <div class="bg-gray-800/50 px-6 py-3 rounded-xl border border-white/5 text-center w-full">
+          <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Overall</div>
+          @let colorB = teamB.overall | overallColor;
+          <div class="text-3xl font-black" [class]="colorB.text">{{ teamB.overall }}</div>
+        </div>
+      </div>
+
+      <!-- Comparação Detalhada (Full Width) -->
+      <div class="lg:col-span-5 bg-gray-900/60 rounded-3xl border border-white/5 p-8 backdrop-blur-md">
+        <h4
+          class="text-center text-gray-400 font-bold uppercase tracking-widest text-xs mb-8 flex items-center justify-center gap-2">
+          <span class="h-px w-8 bg-gray-700"></span> Análise Comparativa <span class="h-px w-8 bg-gray-700"></span>
+        </h4>
+
+        <div class="space-y-6 max-w-3xl mx-auto">
+          <!-- Bar Item: Budget -->
+          <div class="relative">
+            <div class="flex justify-between text-sm font-bold mb-2">
+              <span class="text-purple-300">{{ teamA.budget | currencyShort }}</span>
+              <span class="text-gray-500 text-[10px] uppercase font-black tracking-widest">Orçamento</span>
+              <span class="text-indigo-300">{{ teamB.budget | currencyShort }}</span>
+            </div>
+            <!-- Visual Bar -->
+            <div class="h-2 bg-gray-800 rounded-full overflow-hidden flex">
+              @let totalBudget = teamA.budget + teamB.budget;
+              <div class="h-full bg-purple-600" [style.width.%]="(teamA.budget / totalBudget) * 100"></div>
+              <div class="h-full bg-indigo-600 flex-grow"></div>
+            </div>
+          </div>
+
+          <!-- Bar Item: Squad Value -->
+          <div class="relative">
+            <div class="flex justify-between text-sm font-bold mb-2">
+              <span class="text-purple-300">{{ getTotalMarketValue(teamA) | currencyShort }}</span>
+              <span class="text-gray-500 text-[10px] uppercase font-black tracking-widest">Valor do Elenco</span>
+              <span class="text-indigo-300">{{ getTotalMarketValue(teamB) | currencyShort }}</span>
+            </div>
+            <div class="h-2 bg-gray-800 rounded-full overflow-hidden flex">
+              @let totalVal = getTotalMarketValue(teamA) + getTotalMarketValue(teamB);
+              <div class="h-full bg-purple-600" [style.width.%]="(getTotalMarketValue(teamA) / totalVal) * 100"></div>
+              <div class="h-full bg-indigo-600 flex-grow"></div>
+            </div>
+          </div>
+
+          <!-- Trophies Grid -->
+          <div class="grid grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/5">
+            <div class="text-center">
+              <i class="fas fa-trophy text-gray-600 mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-bold">LIGAS</div>
+              <div class="flex justify-center gap-4 mt-1 font-bold text-lg"><span class="text-purple-400">{{
+                  getTrophyCount(teamA, 'national_league') }}</span><span class="text-gray-700">x</span><span
+                  class="text-indigo-400">{{ getTrophyCount(teamB, 'national_league') }}</span></div>
+            </div>
+            <div class="text-center">
+              <i class="fas fa-wine-glass text-gray-600 mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-bold">COPAS</div>
+              <div class="flex justify-center gap-4 mt-1 font-bold text-lg"><span class="text-purple-400">{{
+                  getTrophyCount(teamA, 'national_cup') }}</span><span class="text-gray-700">x</span><span
+                  class="text-indigo-400">{{ getTrophyCount(teamB, 'national_cup') }}</span></div>
+            </div>
+            <div class="text-center">
+              <i class="fas fa-globe-americas text-gray-600 mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-bold">INTL</div>
+              <div class="flex justify-center gap-4 mt-1 font-bold text-lg"><span class="text-purple-400">{{
+                  getTrophyCount(teamA, 'international') }}</span><span class="text-gray-700">x</span><span
+                  class="text-indigo-400">{{ getTrophyCount(teamB, 'international') }}</span></div>
+            </div>
+            <div class="text-center">
+              <i class="fas fa-globe text-gray-600 mb-2"></i>
+              <div class="text-[10px] text-gray-500 font-bold">MUNDO</div>
+              <div class="flex justify-center gap-4 mt-1 font-bold text-lg"><span class="text-purple-400">{{
+                  getTrophyCount(teamA, 'world') }}</span><span class="text-gray-700">x</span><span
+                  class="text-indigo-400">{{ getTrophyCount(teamB, 'world') }}</span></div>
+            </div>
+          </div>
+
+          <!-- H2H Summary -->
+          @if(h2hData(); as h2h) {
+          <div class="bg-black/30 rounded-xl p-6 mt-6 border border-white/5">
+            <div class="text-center text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Histórico de
+              Confrontos</div>
+            <div class="flex items-center justify-between px-4">
+              <div class="text-center">
+                <div class="text-3xl font-black text-purple-500">{{ h2h.teamAWins }}</div>
+                <div class="text-[9px] text-purple-500/50 uppercase font-bold">Vitórias A</div>
+              </div>
+              <div class="text-center px-4">
+                <div class="text-xl font-bold text-white">{{ h2h.draws }}</div>
+                <div class="text-[9px] text-gray-600 uppercase font-bold">Empates</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-black text-indigo-500">{{ h2h.teamBWins }}</div>
+                <div class="text-[9px] text-indigo-500/50 uppercase font-bold">Vitórias B</div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    } @else {
+    <!-- PLAYER COMPARISON -->
+    @let playerA = itemA()!;
+    @let playerB = itemB()!;
+    @let statsA = playerAStats();
+    @let statsB = playerBStats();
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
+      <!-- Player A -->
+      <div
+        class="bg-gray-900/80 rounded-3xl border border-white/5 p-6 flex flex-col items-center shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 w-full h-1 bg-purple-500/50"></div>
+        <h3 class="text-2xl font-black text-white text-center">{{ playerA.name }}</h3>
+        <p class="text-sm text-gray-400 mb-2">{{ playerA.teamName }}</p>
+
+        <div class="flex justify-center items-center py-2 w-full overflow-visible">
+          <div #chartA class="min-w-[260px] min-h-[260px] relative z-10"></div>
+        </div>
+
+        <div class="w-full space-y-3 mt-2">
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Overall</span>
+            <span class="font-black text-xl text-white">{{ playerA.overall }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Idade</span>
+            <span class="font-bold text-white">{{ playerA.age }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Valor</span>
+            <span class="font-bold text-green-400">{{ playerA.marketValue | currencyShort }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Player B -->
+      <div
+        class="bg-gray-900/80 rounded-3xl border border-white/5 p-6 flex flex-col items-center shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 w-full h-1 bg-indigo-500/50"></div>
+        <h3 class="text-2xl font-black text-white text-center">{{ playerB.name }}</h3>
+        <p class="text-sm text-gray-400 mb-2">{{ playerB.teamName }}</p>
+
+        <div class="flex justify-center items-center py-2 w-full overflow-visible">
+          <div #chartB class="min-w-[260px] min-h-[260px] relative z-10"></div>
+        </div>
+
+        <div class="w-full space-y-3 mt-2">
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Overall</span>
+            <span class="font-black text-xl text-white">{{ playerB.overall }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Idade</span>
+            <span class="font-bold text-white">{{ playerB.age }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-white/5 p-3 rounded-lg">
+            <span class="text-xs font-bold text-gray-400 uppercase">Valor</span>
+            <span class="font-bold text-green-400">{{ playerB.marketValue | currencyShort }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela Comparativa (Bottom Full Width) -->
+      <div class="lg:col-span-2 bg-gray-800/40 rounded-2xl p-6 border border-white/5">
+        <h4 class="text-center text-gray-500 text-xs font-bold uppercase tracking-widest mb-6">Comparação de Carreira
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-black/20 p-4 rounded-xl text-center">
+            <div class="text-[10px] text-gray-500 font-bold uppercase mb-2">Jogos</div>
+            <div class="flex justify-center gap-3 font-black text-2xl">
+              <span class="text-purple-400">{{ statsA.matchesPlayed }}</span>
+              <span class="text-gray-700 text-sm py-1">vs</span>
+              <span class="text-indigo-400">{{ statsB.matchesPlayed }}</span>
+            </div>
+          </div>
+          <div class="bg-black/20 p-4 rounded-xl text-center">
+            <div class="text-[10px] text-gray-500 font-bold uppercase mb-2">Gols</div>
+            <div class="flex justify-center gap-3 font-black text-2xl">
+              <span class="text-purple-400">{{ statsA.goals }}</span>
+              <span class="text-gray-700 text-sm py-1">vs</span>
+              <span class="text-indigo-400">{{ statsB.goals }}</span>
+            </div>
+          </div>
+          <div class="bg-black/20 p-4 rounded-xl text-center">
+            <div class="text-[10px] text-gray-500 font-bold uppercase mb-2">Assistências</div>
+            <div class="flex justify-center gap-3 font-black text-2xl">
+              <span class="text-purple-400">{{ statsA.assists }}</span>
+              <span class="text-gray-700 text-sm py-1">vs</span>
+              <span class="text-indigo-400">{{ statsB.assists }}</span>
+            </div>
+          </div>
+          <div class="bg-black/20 p-4 rounded-xl text-center">
+            <div class="text-[10px] text-gray-500 font-bold uppercase mb-2">Man of the Match</div>
+            <div class="flex justify-center gap-3 font-black text-2xl">
+              <span class="text-purple-400">{{ statsA.motm }}</span>
+              <span class="text-gray-700 text-sm py-1">vs</span>
+              <span class="text-indigo-400">{{ statsB.motm }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <!-- Empty State -->
+  <div
+    class="flex flex-col items-center justify-center py-24 bg-gray-900/30 rounded-3xl border border-white/5 border-dashed">
+    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-6">
+      <i class="fas fa-balance-scale text-4xl text-gray-600"></i>
+    </div>
+    <h3 class="text-xl font-bold text-gray-300">Modo de Comparação</h3>
+    <p class="text-gray-500 text-sm mt-2 max-w-sm text-center">Selecione dois times ou jogadores acima para iniciar a
+      análise detalhada.</p>
+  </div>
+  }
+</div>
+
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

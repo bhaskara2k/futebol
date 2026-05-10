@@ -1,0 +1,279 @@
+<div class="space-y-8">
+  @if (competitionType() === 'national') {
+    <!-- SEÇÃO: RANKING HISTÓRICO (HALL DA FAMA) -->
+    <div class="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+      <header class="p-5 bg-gray-700/50 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-600">
+        <div class="flex items-center gap-3">
+          <i class="fas fa-university text-yellow-500 text-lg"></i>
+          <h3 class="text-lg font-bold text-white tracking-wide uppercase">Hall da Fama</h3>
+        </div>
+
+        <select (change)="onSeasonChange($event)"
+          class="bg-gray-900 border border-indigo-500/30 text-white text-[10px] font-black uppercase tracking-widest rounded-lg px-4 py-2 focus:outline-none appearance-none cursor-pointer hover:bg-gray-800 transition-colors">
+          <option value="all">Todas as Temporadas</option>
+          @for(s of availableSeasons(); track s) {
+          <option [value]="s" [selected]="selectedSeason() === s">Temporada {{s}}</option>
+          }
+        </select>
+      </header>
+
+      <!-- Grid de Rankings Compactos -->
+      <div class="p-6 bg-gray-900/50 backdrop-blur-sm grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ng-template #rankingCard let-title="title" let-ranking="ranking" let-trophyName="trophyName" let-trophyType="trophyType">
+          <div class="group bg-gray-900/40 border border-white/5 rounded-xl overflow-hidden flex flex-col hover:border-indigo-500/30 transition-all duration-300 shadow-sm">
+            <div class="px-4 py-3 border-b border-white/5 bg-white/5 flex justify-between items-center bg-gradient-to-r from-gray-800 to-transparent">
+              <h4 class="font-bold text-xs text-indigo-300 uppercase tracking-widest truncate max-w-[80%]" title="{{title}}">
+                <i class="fas fa-trophy text-xs opacity-50 mr-2"></i> {{ title }}
+              </h4>
+              <button (click)="editTrophies(trophyName, trophyType)"
+                class="text-indigo-400 hover:text-white hover:bg-indigo-600/20 p-1.5 rounded transition-all md:opacity-0 md:group-hover:opacity-100 flex items-center gap-1 text-[9px] font-bold border border-indigo-400/20 uppercase">
+                <i class="fas fa-edit"></i> Editar
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-2 bg-gray-900/20 max-h-[300px]">
+              @for(item of ranking; track item.team.id; let i = $index) {
+                <div class="flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors group/item border-l-2"
+                     [class]="i === 0 ? 'border-yellow-500' : i === 1 ? 'border-gray-400' : i === 2 ? 'border-orange-500' : 'border-transparent'">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="w-6 text-center text-xs font-bold" [class]="i === 0 ? 'text-yellow-400' : 'text-gray-500'">{{ i + 1 }}º</span>
+                    <img [src]="universeService.getTeamCrest(item.team)" class="w-6 h-6 object-contain filter drop-shadow-sm group-hover/item:scale-110 transition-transform">
+                    <span class="text-xs font-semibold text-gray-300 group-hover/item:text-white truncate">{{ item.team.teamName }}</span>
+                  </div>
+                  <span class="font-bold text-xs tabular-nums" [class]="i === 0 ? 'text-yellow-400' : 'text-gray-400'">{{ item.count }}x</span>
+                </div>
+              } @empty {
+                <div class="h-32 flex flex-col items-center justify-center text-gray-600 opacity-60">
+                  <i class="fas fa-trophy text-xl mb-2 opacity-30"></i>
+                  <span class="text-[10px] font-medium uppercase tracking-wide">Sem títulos</span>
+                </div>
+              }
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('national_league'), ranking: sortedDivision1Ranking(), trophyName: getRealCompetitionName('national_league'), trophyType: 'national_league' }"></ng-container>
+        
+        @if (nationalRankings()?.division2) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 1), ranking: sortedDivision2Ranking(), trophyName: getRealCompetitionName('lower_division', 1), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division3) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 2), ranking: sortedDivision3Ranking(), trophyName: getRealCompetitionName('lower_division', 2), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division4) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 3), ranking: sortedDivision4Ranking(), trophyName: getRealCompetitionName('lower_division', 3), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division5) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 4), ranking: sortedDivision5Ranking(), trophyName: getRealCompetitionName('lower_division', 4), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division6) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 5), ranking: sortedDivision6Ranking(), trophyName: getRealCompetitionName('lower_division', 5), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division7) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 6), ranking: sortedDivision7Ranking(), trophyName: getRealCompetitionName('lower_division', 6), trophyType: 'lower_division' }"></ng-container>
+        }
+        @if (nationalRankings()?.division8) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('lower_division', 7), ranking: sortedDivision8Ranking(), trophyName: getRealCompetitionName('lower_division', 7), trophyType: 'lower_division' }"></ng-container>
+        }
+
+        <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('national_cup'), ranking: sortedCupRanking(), trophyName: getCupTrophyNameForEdit(), trophyType: 'national_cup' }"></ng-container>
+
+        @if (nationalRankings()?.leagueCup) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getLeagueCupTrophyNameForEdit(league()?.countryId), ranking: sortedLeagueCupRanking(), trophyName: getLeagueCupTrophyNameForEdit(league()?.countryId), trophyType: 'national_cup' }"></ng-container>
+        }
+
+        @if (nationalRankings()?.supercup) {
+          <ng-container *ngTemplateOutlet="rankingCard; context: { title: getRealCompetitionName('supercup'), ranking: sortedSupercupRanking(), trophyName: getSupercupTrophyNameForEdit(), trophyType: 'national_cup' }"></ng-container>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO: HISTÓRICO POR TEMPORADA -->
+    <div class="space-y-6">
+      <div class="p-4 bg-gradient-to-r from-gray-800 to-gray-900/50 border-l-4 border-indigo-500 text-white tracking-wide rounded-r-lg shadow-lg flex items-center gap-3">
+        <i class="fas fa-history text-indigo-400"></i>
+        <h3 class="text-xl font-bold">Histórico por Temporada</h3>
+      </div>
+
+      <div class="space-y-4">
+        @for(season of filteredNationalHistory(); track season.season) {
+          <details [open]="selectedSeason() !== null"
+            class="group bg-gray-900/40 backdrop-blur-sm rounded-xl border border-white/5 overflow-hidden transition-all duration-300 open:bg-gray-800/90 open:border-indigo-500/30 shadow-sm">
+            <summary class="flex justify-between items-center p-5 cursor-pointer select-none">
+              <div class="flex items-center gap-6">
+                <span class="text-3xl font-black text-gray-600 group-open:text-indigo-400 transition-colors tracking-tight">{{ season.season }}</span>
+                <div class="h-10 w-px bg-white/10 hidden sm:block"></div>
+                
+                @if(season.division1.champion; as champ) {
+                  <div class="flex flex-col">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Campeão Nacional</div>
+                    <div class="flex items-center gap-2">
+                      <img [src]="universeService.getTeamCrest(champ)" class="w-6 h-6 object-contain">
+                      <span class="font-bold text-xl text-white group-hover:text-indigo-300 transition-colors">{{ champ.teamName }}</span>
+                    </div>
+                  </div>
+                } @else {
+                  <span class="text-sm text-gray-500 italic">Em andamento...</span>
+                }
+              </div>
+              <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-300"></i>
+            </summary>
+
+            <div class="p-6 border-t border-white/5 bg-black/20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              @for(comp of [season.division1, season.division2, season.division3, season.division4, season.division5, season.division6, season.division7, season.division8, season.cup, season.leagueCup, season.supercup]; track $index) {
+                @if (comp && comp.champion) {
+                  <div class="bg-gray-800/60 rounded-lg p-4 border border-white/5 group/card hover:border-indigo-500/20 transition-all">
+                    <h5 class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-4 border-b border-white/5 pb-2 truncate">{{ comp.name }}</h5>
+                    
+                    <div class="space-y-4">
+                      <!-- Campeão -->
+                      <div class="flex items-center gap-3">
+                        <img [src]="universeService.getTeamCrest(comp.champion)" class="w-8 h-8 object-contain">
+                        <div class="min-w-0">
+                          <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-tighter">Campeão</p>
+                          <p class="text-sm font-bold text-white truncate">{{ comp.champion.teamName }}</p>
+                        </div>
+                      </div>
+
+                      <!-- Vice -->
+                      @if(comp.runnerUp; as vice) {
+                        <div class="flex items-center gap-3 opacity-60">
+                          <img [src]="universeService.getTeamCrest(vice)" class="w-8 h-8 object-contain grayscale">
+                          <div class="min-w-0">
+                            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-tighter">Vice</p>
+                            <p class="text-sm font-semibold text-gray-400 truncate">{{ vice.teamName }}</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+              
+              <!-- Acesso e Descenso Footer -->
+              @if (season.promotedTeams.length > 0 || season.relegatedTeams.length > 0) {
+                <div class="col-span-full mt-6 p-6 bg-black/40 rounded-2xl border border-white/5 grid grid-cols-1 md:grid-cols-2 gap-8 shadow-inner">
+                  @if(season.promotedTeams.length > 0) {
+                    <div class="space-y-4">
+                      <h6 class="text-green-400 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        Promovidos
+                      </h6>
+                      <div class="flex flex-wrap gap-3">
+                        @for(teamName of season.promotedTeams; track $index){
+                          @let team = getTeamByName(teamName);
+                          <div class="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-2 rounded-xl group/team hover:bg-green-500/20 transition-all">
+                            @if(team) {
+                              <img [src]="universeService.getTeamCrest(team)" class="w-5 h-5 object-contain filter drop-shadow-md">
+                            } @else {
+                              <i class="fas fa-shield-alt text-[10px] text-green-500/50"></i>
+                            }
+                            <span class="text-green-200 text-[11px] font-bold">{{ teamName }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if(season.relegatedTeams.length > 0) {
+                    <div class="space-y-4">
+                      <h6 class="text-red-400 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        Rebaixados
+                      </h6>
+                      <div class="flex flex-wrap gap-3">
+                        @for(teamName of season.relegatedTeams; track $index){
+                          @let team = getTeamByName(teamName);
+                          <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-xl group/team hover:bg-red-500/20 transition-all">
+                            @if(team) {
+                              <img [src]="universeService.getTeamCrest(team)" class="w-5 h-5 object-contain filter drop-shadow-md">
+                            } @else {
+                              <i class="fas fa-shield-alt text-[10px] text-red-500/50"></i>
+                            }
+                            <span class="text-red-200 text-[11px] font-bold">{{ teamName }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </details>
+        }
+      </div>
+    </div>
+  } @else if (competitionType() === 'international' || competitionType() === 'youth_cl') {
+    <!-- Versão Internacional Compacta -->
+    <div class="space-y-8">
+      <div class="bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+        <header class="p-5 bg-gray-700/50 flex justify-between items-center border-b border-gray-600">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-globe text-indigo-400 text-lg"></i>
+            <h3 class="text-lg font-bold text-white tracking-wide uppercase">Hall da Fama Global</h3>
+          </div>
+          @if (competitionName(); as name) {
+            <button (click)="editTrophies(name, competitionTrophyType()!)"
+              class="text-xs bg-indigo-600/50 hover:bg-indigo-600 p-2 rounded-lg text-white font-bold transition-all uppercase tracking-widest">
+              Gerenciar
+            </button>
+          }
+        </header>
+        <div class="p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            @for (item of sortedInternationalRanking(); track item.team.id; let i = $index) {
+              <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
+                <div class="flex items-center gap-4 min-w-0">
+                  <span class="w-6 text-center text-sm font-black" [class]="i < 3 ? 'text-yellow-400' : 'text-gray-600'">{{ i + 1 }}º</span>
+                  <img [src]="item.team.logoUrl || universeService.getTeamCrest(item.team)" class="w-6 h-6 object-contain flex-shrink-0">
+                  <span class="font-bold text-gray-200 truncate text-sm">{{ item.team.teamName || item.team.name }}</span>
+                </div>
+                <span class="text-base font-black text-white/60 tabular-nums ml-4">{{ item.count }}x</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        @for(record of filteredInternationalHistory(); track record.season) {
+          <div class="bg-gray-900/40 rounded-2xl border border-white/5 p-6 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-8">
+              <span class="text-4xl font-black text-gray-700">{{ record.season }}</span>
+              <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+              
+              <div class="flex flex-wrap gap-10">
+                <!-- Campeão -->
+                <div class="flex items-center gap-4">
+                  <img [src]="universeService.getTeamCrest(record.champion)" class="w-10 h-10 object-contain shadow-lg">
+                  <div>
+                    <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Campeão</p>
+                    <h4 class="text-lg font-black text-white leading-tight">{{ record.champion?.teamName || 'N/A' }}</h4>
+                  </div>
+                </div>
+                <!-- Vice -->
+                <div class="flex items-center gap-4 opacity-50">
+                  <img [src]="universeService.getTeamCrest(record.runnerUp)" class="w-10 h-10 object-contain grayscale">
+                  <div>
+                    <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Vice</p>
+                    <h4 class="text-base font-bold text-gray-400 leading-tight">{{ record.runnerUp?.teamName || 'N/A' }}</h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-bold text-gray-600 uppercase tracking-widest">Temporada Finalizada</div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  
+  details>summary { list-style: none; }
+  details>summary::-webkit-details-marker { display: none; }
+</style>

@@ -1,0 +1,647 @@
+<div
+    class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-white/10 shadow-2xl">
+    <!-- Header -->
+    <div class="relative z-10 p-6 border-b border-white/10 bg-black/20 backdrop-blur-sm">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <!-- Botão Voltar -->
+                <button (click)="back.emit()"
+                    class="flex items-center gap-2 group px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-gray-400 hover:text-white">
+                    <i class="fas fa-arrow-left text-sm group-hover:-translate-x-1 transition-transform"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider">Voltar</span>
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-file-export text-2xl text-indigo-400"></i>
+                    <div>
+                        <h3 class="text-2xl font-black text-white tracking-tight">Relatórios & Exportação</h3>
+                        <p class="text-sm text-gray-400 mt-1">Exporte dados de jogadores e times para análise externa
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-gray-500 uppercase tracking-wider">Temporada</div>
+                <div class="text-2xl font-black text-indigo-400">{{ universeService.season() }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 p-6 space-y-6">
+
+        <!-- Tipo de Relatório -->
+        <div class="grid grid-cols-1 gap-4">
+            <div>
+                <label
+                    class="block mb-3 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-list text-indigo-400"></i>
+                    Tipo de Relatório
+                </label>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <button (click)="reportType.set('players')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'players' 
+                ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-users text-2xl"
+                                [class]="reportType() === 'players' ? 'text-indigo-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'players' ? 'text-white' : 'text-gray-400'">Jogadores</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('u20_players')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'u20_players' 
+                ? 'bg-blue-600/20 border-blue-500 shadow-lg shadow-blue-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-user-graduate text-2xl"
+                                [class]="reportType() === 'u20_players' ? 'text-blue-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'u20_players' ? 'text-white' : 'text-gray-400'">Base</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('national_players')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'national_players' 
+                ? 'bg-teal-600/20 border-teal-500 shadow-lg shadow-teal-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-flag text-2xl"
+                                [class]="reportType() === 'national_players' ? 'text-teal-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'national_players' ? 'text-white' : 'text-gray-400'">Seleções</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('national_u20_players')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'national_u20_players' 
+                ? 'bg-cyan-600/20 border-cyan-500 shadow-lg shadow-cyan-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-flag text-2xl"
+                                [class]="reportType() === 'national_u20_players' ? 'text-cyan-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'national_u20_players' ? 'text-white' : 'text-gray-400'">Sel.
+                                Sub-20</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('slot_distribution')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'slot_distribution' 
+                ? 'bg-pink-600/20 border-pink-500 shadow-lg shadow-pink-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-globe-americas text-2xl"
+                                [class]="reportType() === 'slot_distribution' ? 'text-pink-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'slot_distribution' ? 'text-white' : 'text-gray-400'">Dist.
+                                Vagas</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('teams')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'teams' 
+                ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-shield-alt text-2xl"
+                                [class]="reportType() === 'teams' ? 'text-indigo-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'teams' ? 'text-white' : 'text-gray-400'">Times</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('league_stats')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'league_stats' 
+                ? 'bg-green-600/20 border-green-500 shadow-lg shadow-green-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-chart-bar text-2xl"
+                                [class]="reportType() === 'league_stats' ? 'text-green-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'league_stats' ? 'text-white' : 'text-gray-400'">Stats
+                                Ligas</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('matches')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'matches' 
+                ? 'bg-yellow-600/20 border-yellow-500 shadow-lg shadow-yellow-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-futbol text-2xl"
+                                [class]="reportType() === 'matches' ? 'text-yellow-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'matches' ? 'text-white' : 'text-gray-400'">Partidas</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('transfers')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'transfers' 
+                ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-exchange-alt text-2xl"
+                                [class]="reportType() === 'transfers' ? 'text-purple-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'transfers' ? 'text-white' : 'text-gray-400'">Transferências</span>
+                        </div>
+                    </button>
+
+                    <button (click)="reportType.set('champions')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (reportType() === 'champions' 
+                ? 'bg-amber-600/20 border-amber-500 shadow-lg shadow-amber-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-trophy text-2xl"
+                                [class]="reportType() === 'champions' ? 'text-amber-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-xs"
+                                [class]="reportType() === 'champions' ? 'text-white' : 'text-gray-400'">Campeões</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formato de Exportação -->
+            <div>
+                <label
+                    class="block mb-3 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-file-download text-indigo-400"></i>
+                    Formato de Exportação
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button (click)="exportFormat.set('csv')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (exportFormat() === 'csv' 
+                ? 'bg-green-600/20 border-green-500 shadow-lg shadow-green-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-file-csv text-2xl"
+                                [class]="exportFormat() === 'csv' ? 'text-green-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-sm"
+                                [class]="exportFormat() === 'csv' ? 'text-white' : 'text-gray-400'">CSV</span>
+                        </div>
+                    </button>
+
+                    <button (click)="exportFormat.set('json')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (exportFormat() === 'json' 
+                ? 'bg-green-600/20 border-green-500 shadow-lg shadow-green-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-file-code text-2xl"
+                                [class]="exportFormat() === 'json' ? 'text-green-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-sm"
+                                [class]="exportFormat() === 'json' ? 'text-white' : 'text-gray-400'">JSON</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Escopo Temporal (Stats) -->
+            <div>
+                <label
+                    class="block mb-3 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-indigo-400"></i>
+                    Escopo dos Stats
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button (click)="statsScope.set('current')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (statsScope() === 'current' 
+                ? 'bg-orange-600/20 border-orange-500 shadow-lg shadow-orange-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-clock text-2xl"
+                                [class]="statsScope() === 'current' ? 'text-orange-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-sm"
+                                [class]="statsScope() === 'current' ? 'text-white' : 'text-gray-400'">Temp. Atual</span>
+                        </div>
+                    </button>
+
+                    <button (click)="statsScope.set('all')" [class]="'relative overflow-hidden rounded-xl p-4 border-2 transition-all duration-300 ' + 
+              (statsScope() === 'all' 
+                ? 'bg-cyan-600/20 border-cyan-500 shadow-lg shadow-cyan-500/20' 
+                : 'bg-gray-800/40 border-white/10 hover:border-white/20 hover:bg-gray-800/60')">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="fas fa-history text-2xl"
+                                [class]="statsScope() === 'all' ? 'text-cyan-400' : 'text-gray-500'"></i>
+                            <span class="font-bold text-sm"
+                                [class]="statsScope() === 'all' ? 'text-white' : 'text-gray-400'">Acumulado</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Filtro de Liga -->
+            <div>
+                <label for="league-filter"
+                    class="block mb-3 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-filter text-indigo-400"></i>
+                    Filtrar por Liga
+                </label>
+                <select id="league-filter" [ngModel]="selectedLeague()"
+                    (ngModelChange)="selectedLeague.set($event); selectedTeam.set('all')"
+                    class="bg-gray-900 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 transition-all hover:border-white/20 font-medium">
+                    <option value="all">Todas as Ligas</option>
+                    @for(league of availableLeagues(); track league.id) {
+                    <option [value]="league.id">{{ league.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Filtro de Time -->
+            <div>
+                <label for="team-filter"
+                    class="block mb-3 text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-filter text-indigo-400"></i>
+                    Filtrar por Time
+                </label>
+                <select id="team-filter" [ngModel]="selectedTeam()" (ngModelChange)="selectedTeam.set($event)"
+                    [disabled]="selectedLeague() === 'all'"
+                    class="bg-gray-900 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full p-3 transition-all hover:border-white/20 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                    <option value="all">Todos os Times</option>
+                    @for(team of availableTeams(); track team.id) {
+                    <option [value]="team.id">{{ team.name }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Preview de Dados -->
+        <div class="bg-gray-900/50 rounded-xl border border-white/5 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-eye text-indigo-400"></i>
+                    Preview dos Dados
+                </h4>
+                <div class="text-sm">
+                    <span class="text-gray-400">Total de registros:</span>
+                    <span class="ml-2 font-black text-indigo-400 text-lg">{{ recordCount() }}</span>
+                </div>
+            </div>
+
+            <!-- Mensagem Inicial -->
+            @if(reportType() === null) {
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+                <div
+                    class="w-24 h-24 rounded-full bg-indigo-600/20 border-2 border-indigo-500/30 flex items-center justify-center mb-6">
+                    <i class="fas fa-chart-line text-4xl text-indigo-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Selecione um Tipo de Relatório</h3>
+                <p class="text-gray-400 text-center max-w-md">
+                    Escolha acima qual tipo de dados você deseja exportar: Jogadores, Times, Estatísticas de Ligas,
+                    Partidas ou Transferências.
+                </p>
+            </div>
+            }
+
+            <!-- Preview de Jogadores -->
+            @if(reportType() === 'players') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Nome</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Time</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Liga</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">OVR</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Idade</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Gols</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Assists</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">MVPs</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Prêmios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(player of playersData().slice(0, 50); track player.nome) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-white">{{ player.nome }}</td>
+                            <td class="p-3 text-gray-400">{{ player.time }}</td>
+                            <td class="p-3 text-gray-400">{{ player.liga }}</td>
+                            <td class="p-3 text-center font-bold text-indigo-400">{{ player.overall }}</td>
+                            <td class="p-3 text-center text-gray-300">{{ player.idade }}</td>
+                            <td class="p-3 text-center text-green-400 font-medium">{{ player.totalGols }}</td>
+                            <td class="p-3 text-center text-blue-400 font-medium">{{ player.totalAssistencias }}</td>
+                            <td class="p-3 text-center text-yellow-400 font-medium">{{ player.totalMVPs }}</td>
+                            <td class="p-3 text-center text-amber-400 font-bold">{{ player.totalPremios }}</td>
+                        </tr>
+                        }
+                        @if(playersData().length > 50) {
+                        <tr>
+                            <td colspan="9" class="p-3 text-center text-gray-500 text-xs">
+                                ... e mais {{ playersData().length - 50 }} jogadores (serão incluídos na exportação)
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+
+            <!-- Preview de Jogadores de Seleção -->
+            @if(reportType() === 'national_players') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Nome</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Continente</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Seleção</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Clube</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">País (Clube)</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">OVR</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Idade</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Gols</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Assists</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">MVPs</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Prêmios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(player of nationalPlayersData().slice(0, 50); track player.nome) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-white">{{ player.nome }}</td>
+                            <td class="p-3 text-gray-400">{{ player.continenteSelecao }}</td>
+                            <td class="p-3 text-teal-400 font-bold">{{ player.selecao }}</td>
+                            <td class="p-3 text-gray-400">{{ player.time }}</td>
+                            <td class="p-3 text-gray-400">{{ player.liga }}</td>
+                            <td class="p-3 text-center font-bold text-indigo-400">{{ player.overall }}</td>
+                            <td class="p-3 text-center text-gray-300">{{ player.idade }}</td>
+                            <td class="p-3 text-center text-green-400 font-medium">{{ player.totalGols }}</td>
+                            <td class="p-3 text-center text-blue-400 font-medium">{{ player.totalAssistencias }}</td>
+                            <td class="p-3 text-center text-yellow-400 font-medium">{{ player.totalMVPs }}</td>
+                            <td class="p-3 text-center text-amber-400 font-bold">{{ player.totalPremios }}</td>
+                        </tr>
+                        }
+                        @if(nationalPlayersData().length > 50) {
+                        <tr>
+                            <td colspan="11" class="p-3 text-center text-gray-500 text-xs">
+                                ... e mais {{ nationalPlayersData().length - 50 }} jogadores (serão incluídos na
+                                exportação)
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+
+            <!-- Preview de Jogadores de Seleção Sub-20 -->
+            @if(reportType() === 'national_u20_players') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Nome</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Continente</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Seleção</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Clube</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">País (Clube)</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">OVR</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Idade</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Gols</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Assists</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">MVPs</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Prêmios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(player of nationalU20PlayersData().slice(0, 50); track player.nome) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-white">{{ player.nome }}</td>
+                            <td class="p-3 text-gray-400">{{ player.continenteSelecao }}</td>
+                            <td class="p-3 text-cyan-400 font-bold">{{ player.selecao }}</td>
+                            <td class="p-3 text-gray-400">{{ player.time }}</td>
+                            <td class="p-3 text-gray-400">{{ player.liga }}</td>
+                            <td class="p-3 text-center font-bold text-indigo-400">{{ player.overall }}</td>
+                            <td class="p-3 text-center text-gray-300">{{ player.idade }}</td>
+                            <td class="p-3 text-center text-green-400 font-medium">{{ player.totalGols }}</td>
+                            <td class="p-3 text-center text-blue-400 font-medium">{{ player.totalAssistencias }}</td>
+                            <td class="p-3 text-center text-yellow-400 font-medium">{{ player.totalMVPs }}</td>
+                            <td class="p-3 text-center text-amber-400 font-bold">{{ player.totalPremios }}</td>
+                        </tr>
+                        }
+                        @if(nationalU20PlayersData().length > 50) {
+                        <tr>
+                            <td colspan="11" class="p-3 text-center text-gray-500 text-xs">
+                                ... e mais {{ nationalU20PlayersData().length - 50 }} jogadores (serão incluídos na
+                                exportação)
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+
+            <!-- Distribuição de Vagas -->
+            @if(reportType() === 'slot_distribution' && slotsData()) {
+            <div class="space-y-6 overflow-y-auto max-h-[32rem] custom-scrollbar p-2">
+                @for(item of slotsData() | keyvalue; track item.key) {
+                <div class="bg-gray-800/50 rounded-xl p-4 border border-white/10">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-globe text-indigo-400"></i>
+                        {{ item.value.name }}
+                    </h3>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <!-- Clubes -->
+                        <div class="bg-gray-900/50 rounded-lg p-4">
+                            <h4 class="text-sm font-bold text-gray-400 uppercase mb-3 border-b border-white/10 pb-2">
+                                Competições de Clubes
+                            </h4>
+                            <div class="space-y-3">
+                                @for(clubRule of item.value.clubCompetitions; track $index) {
+                                <div class="text-sm">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="font-bold text-pink-400">{{ clubRule.rank }}</span>
+                                        <span class="text-gray-300 text-right text-xs bg-gray-800 px-2 py-1 rounded">{{
+                                            clubRule.description }}</span>
+                                    </div>
+                                    <div class="text-gray-500 text-xs flex flex-col gap-0.5 mt-2 ml-1">
+                                        @for(country of getCountryNames(clubRule.countries); track country) {
+                                        <span
+                                            class="flex items-center gap-1.5 py-0.5 border-b border-white/5 last:border-0">
+                                            <i class="fas fa-caret-right text-indigo-500 opacity-50 text-[10px]"></i>
+                                            {{ country }}
+                                        </span>
+                                        }
+                                    </div>
+                                </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Seleções -->
+                        <div class="bg-gray-900/50 rounded-lg p-4">
+                            <h4 class="text-sm font-bold text-gray-400 uppercase mb-3 border-b border-white/10 pb-2">
+                                Competições de Seleções
+                            </h4>
+                            <div class="space-y-3">
+                                @for(natRule of item.value.nationalCompetitions; track natRule.name) {
+                                <div class="text-sm">
+                                    <span class="font-bold text-teal-400 block mb-1">{{ natRule.name }}</span>
+                                    <span class="text-gray-400">{{ natRule.description }}</span>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- Preview de Jogadores Sub-20 -->
+            @if(reportType() === 'u20_players') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Nome</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Time</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Liga</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">OVR</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Idade</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Gols</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Assists</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">MVPs</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Prêmios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(player of u20PlayersData().slice(0, 50); track player.nome) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-white">{{ player.nome }}</td>
+                            <td class="p-3 text-gray-400">{{ player.time }}</td>
+                            <td class="p-3 text-gray-400">{{ player.liga }}</td>
+                            <td class="p-3 text-center font-bold text-indigo-400">{{ player.overall }}</td>
+                            <td class="p-3 text-center text-gray-300">{{ player.idade }}</td>
+                            <td class="p-3 text-center text-green-400 font-medium">{{ player.totalGols }}</td>
+                            <td class="p-3 text-center text-blue-400 font-medium">{{ player.totalAssistencias }}</td>
+                            <td class="p-3 text-center text-yellow-400 font-medium">{{ player.totalMVPs }}</td>
+                            <td class="p-3 text-center text-amber-400 font-bold">{{ player.totalPremios }}</td>
+                        </tr>
+                        }
+                        @if(u20PlayersData().length > 50) {
+                        <tr>
+                            <td colspan="9" class="p-3 text-center text-gray-500 text-xs">
+                                ... e mais {{ u20PlayersData().length - 50 }} jogadores (serão incluídos na exportação)
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+
+            <!-- Preview de Times -->
+            @if(reportType() === 'teams') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Time</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Liga</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">OVR</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Jogadores</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">Títulos</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Liga</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🏆 Copa</th>
+                            <th class="text-center p-3 text-xs font-bold text-gray-400 uppercase">🌍 Int.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(team of teamsData(); track team.time) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-white">{{ team.time }}</td>
+                            <td class="p-3 text-gray-400">{{ team.liga }}</td>
+                            <td class="p-3 text-center font-bold text-indigo-400">{{ team.overall }}</td>
+                            <td class="p-3 text-center text-gray-300">{{ team.numeroJogadores }}</td>
+                            <td class="p-3 text-center font-bold text-yellow-400">{{ team.titulosTotal }}</td>
+                            <td class="p-3 text-center text-green-400 font-medium">{{ team.titulosLigaNacional }}</td>
+                            <td class="p-3 text-center text-blue-400 font-medium">{{ team.titulosCopaNacional }}</td>
+                            <td class="p-3 text-center text-purple-400 font-medium">{{ team.titulosInternacionais }}
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+
+            <!-- Preview de Campeões -->
+            @if(reportType() === 'champions') {
+            <div class="overflow-x-auto max-h-96 custom-scrollbar">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-gray-800 border-b border-white/10">
+                        <tr>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Temporada</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Liga</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Competição</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Campeão</th>
+                            <th class="text-left p-3 text-xs font-bold text-gray-400 uppercase">Vice</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for(champion of championsData().slice(0, 50); track champion.temporada + champion.liga +
+                        champion.competicao) {
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-medium text-indigo-400">{{ champion.temporada }}</td>
+                            <td class="p-3 text-white">{{ champion.liga }}</td>
+                            <td class="p-3">
+                                <span [class]="champion.competicao === 'Liga Nacional' ? 'text-blue-400' : 
+                                               champion.competicao === 'Copa Nacional' ? 'text-green-400' : 
+                                               'text-amber-400'">
+                                    {{ champion.competicao }}
+                                </span>
+                            </td>
+                            <td class="p-3 font-bold text-amber-400">🏆 {{ champion.campeao }}</td>
+                            <td class="p-3 text-gray-400">{{ champion.viceCampeao }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+
+        <!-- Botão de Exportação -->
+        <div class="flex justify-end">
+            <button (click)="generateReport()" [disabled]="recordCount() === 0"
+                class="group relative bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                <div
+                    class="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-50 transition-opacity">
+                </div>
+                <span class="relative flex items-center gap-3">
+                    <i class="fas fa-download text-lg"></i>
+                    <span>Exportar Relatório ({{ exportFormat().toUpperCase() }})</span>
+                </span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.3);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.5);
+    }
+</style>

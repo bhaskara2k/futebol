@@ -1,0 +1,300 @@
+<div class="space-y-12 pb-24">
+  <!-- FILTROS PREMIUM (Apenas se não estiver no titles) -->
+  @if (showFilters() && activeTab() !== 'titles') {
+  <div class="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-[#0a0a0c] via-[#0f0f12] to-[#0a0a0c] border border-white/5 shadow-2xl p-8">
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-600/10 blur-[120px] pointer-events-none"></div>
+    <div class="relative z-10">
+      <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.5em] mb-6 flex items-center gap-3">
+        <i class="fas fa-search text-indigo-400"></i> Localizar Ligas
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="group">
+          <label class="block mb-3 text-[10px] font-black text-gray-600 uppercase tracking-widest group-focus-within:text-indigo-400 transition-colors">Continente</label>
+          <select (change)="onContinentChange($event)"
+            class="bg-black/60 border border-white/10 text-white text-sm rounded-2xl focus:ring-2 focus:ring-indigo-500 block w-full p-4 transition-all hover:bg-gray-800 appearance-none shadow-inner">
+            <option value="">Selecione um continente</option>
+            @for (continent of continents(); track continent.key) {
+            <option [value]="continent.key">{{ continent.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="group">
+          <label class="block mb-3 text-[10px] font-black text-gray-600 uppercase tracking-widest group-focus-within:text-indigo-400 transition-colors">País</label>
+          <select id="country-filter" (change)="onCountryChange($event)" [disabled]="!selectedContinent()"
+            class="bg-black/60 border border-white/10 text-white text-sm rounded-2xl focus:ring-2 focus:ring-indigo-500 block w-full p-4 transition-all hover:bg-gray-800 appearance-none shadow-inner disabled:opacity-20">
+            <option value="">Selecione um país</option>
+            @for (country of countries(); track country.countryId) {
+            <option [value]="country.countryId">{{ country.countryName }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="group">
+          <label class="block mb-3 text-[10px] font-black text-gray-600 uppercase tracking-widest group-focus-within:text-indigo-400 transition-colors">Divisão</label>
+          <select id="division-filter" (change)="onDivisionChange($event)" [disabled]="!selectedCountry()"
+            class="bg-black/60 border border-white/10 text-white text-sm rounded-2xl focus:ring-2 focus:ring-indigo-500 block w-full p-4 transition-all hover:bg-gray-800 appearance-none shadow-inner disabled:opacity-20">
+            <option value="">Selecione a divisão</option>
+            @for (div of divisionOptions(); track div.name) {
+            <option [value]="div.name">{{ div.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      @if (selectedContinent() || selectedCountry() || selectedDivision()) {
+        <div class="mt-6 pt-6 border-t border-white/5 flex items-center gap-3">
+          <span class="text-[9px] font-black text-gray-600 uppercase tracking-widest">Filtros Ativos:</span>
+          <div class="flex flex-wrap gap-2">
+            @if (selectedContinent()) {
+              <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black border border-indigo-500/20">
+                {{ universeService.CONTINENT_NAMES[selectedContinent()!] }}
+              </span>
+            }
+            @if (selectedCountry()) {
+              <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black border border-emerald-500/20">
+                {{ selectedCountryName() }}
+              </span>
+            }
+            @if (selectedDivision()) {
+              <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black border border-blue-500/20">
+                {{ selectedDivision() }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- TABS DE NAVEGAÇÃO -->
+  @if (showFilters()) {
+  <div class="flex justify-center">
+    <nav class="inline-flex bg-white/5 p-1.5 rounded-2xl border border-white/10 shadow-xl backdrop-blur-md">
+      <button (click)="activeTab.set('ranking')"
+        [class]="'px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ' + (activeTab() === 'ranking' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40 scale-105' : 'text-gray-500 hover:text-gray-300')">
+        <i class="fas fa-globe mr-2"></i> Ranking Global
+      </button>
+      <button (click)="activeTab.set('titles')"
+        [class]="'px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ' + (activeTab() === 'titles' ? 'bg-yellow-600 text-white shadow-lg shadow-yellow-500/40 scale-105' : 'text-gray-500 hover:text-gray-300')">
+        <i class="fas fa-award mr-2"></i> Hall da Fama
+      </button>
+    </nav>
+  </div>
+  }
+
+  <!-- CONTEÚDO PRINCIPAL: EQUIPES DA LIGA -->
+  @if (activeTab() === 'season') {
+    @for (division of displayDivisions(); track division.id) {
+      <div class="animate-fade-in space-y-10">
+        <!-- Division Header -->
+        <div class="flex items-center justify-between border-b border-white/5 pb-6">
+          <div class="flex items-center gap-4">
+            <div class="w-1.5 h-10 bg-indigo-600 rounded-full"></div>
+            <div>
+              <h2 class="text-4xl font-black text-white tracking-tighter">{{ division.name }}</h2>
+              <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">{{ division.teams.length }} Clubes Participantes</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRID DE CLUBES ULTRA-PREMIUM -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          @for (team of sortedTeams(division.teams); track team.id) {
+            <div (click)="onTeamClick(team)"
+              class="group relative bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center text-center transition-all duration-700 hover:-translate-y-4 hover:border-white/20 hover:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.9)] cursor-pointer overflow-hidden">
+              
+              <!-- Decorative Background Glow -->
+              <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/0 via-transparent to-transparent group-hover:from-indigo-600/10 transition-all duration-700 pointer-events-none"></div>
+              
+              <!-- Team Crest High-Impact -->
+              <div class="relative mb-8 group-hover:scale-110 transition-transform duration-700">
+                <div class="w-32 h-32 rounded-[2.5rem] bg-black/60 flex items-center justify-center border border-white/5 shadow-2xl relative overflow-hidden p-6">
+                   <img [src]="universeService.getTeamCrest(team)" 
+                        class="w-full h-full object-contain filter drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-10"
+                        (error)="tryPngFallback($event)">
+                   <!-- Shine effect -->
+                   <div class="absolute -inset-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-45 animate-[shine_8s_infinite] pointer-events-none"></div>
+                </div>
+                <!-- Status Badge -->
+                <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-xl border border-indigo-400/50">
+                  <i class="fas fa-check"></i>
+                </div>
+              </div>
+
+              <!-- Info -->
+              <div class="space-y-4 w-full">
+                <h4 class="text-xl font-black text-white tracking-tight line-clamp-1 group-hover:text-indigo-400 transition-colors">{{ team.teamName }}</h4>
+                
+                <div class="flex items-center justify-center gap-6">
+                  <div class="flex flex-col items-center">
+                    <span class="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Poder</span>
+                    <span class="text-xl font-black text-indigo-400">{{ team.overall }}<span class="text-[10px] ml-0.5">OVR</span></span>
+                  </div>
+                  <div class="w-px h-8 bg-white/5"></div>
+                  <div class="flex flex-col items-center">
+                    <span class="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">País</span>
+                    <img [src]="universeService.getFlagUrl(team.countryId)" class="w-6 h-4 object-cover rounded shadow-sm">
+                  </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="pt-4 border-t border-white/5 mt-4 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                  <span class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em]">Gerenciar Clube <i class="fas fa-arrow-right ml-2"></i></span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- RANKING GLOBAL PREMIUM -->
+  @if (activeTab() === 'ranking') {
+    <div class="animate-fade-in space-y-10">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 class="text-4xl font-black text-white tracking-tighter">Elite Global</h2>
+          <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Ranking Mundial de Força</p>
+        </div>
+        <div class="bg-black/40 border border-white/10 rounded-2xl px-8 py-4 text-center">
+          <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Média Mundial</p>
+          <p class="text-2xl font-black text-white">74.5 <span class="text-xs text-gray-500">OVR</span></p>
+        </div>
+      </div>
+
+      <div class="bg-[#0a0a0c] border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl backdrop-blur-xl">
+        <div class="grid grid-cols-12 gap-4 px-10 py-6 bg-black/40 border-b border-white/5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+          <div class="col-span-1 text-center">Pos</div>
+          <div class="col-span-4">Clube</div>
+          <div class="col-span-1 text-center">Nação</div>
+          <div class="col-span-3">Competição</div>
+          <div class="col-span-2 text-center">Power</div>
+          <div class="col-span-1 text-center">Evolução</div>
+        </div>
+
+        <div class="divide-y divide-white/5 max-h-[700px] overflow-y-auto custom-scrollbar">
+          @for(item of globalTeamRanking(); track item.team.id; let i = $index) {
+            <div (click)="onTeamClick(item.team)"
+              class="grid grid-cols-12 gap-4 px-10 py-5 items-center hover:bg-white/[0.02] transition-all cursor-pointer group">
+              
+              <div class="col-span-1 flex justify-center">
+                <span class="text-xl font-black" [class]="i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : i === 2 ? 'text-orange-500' : 'text-gray-700'">
+                  #{{ i + 1 }}
+                </span>
+              </div>
+
+              <div class="col-span-4 flex items-center gap-5">
+                <div class="w-12 h-12 bg-black/40 rounded-xl border border-white/10 p-2 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <img [src]="universeService.getTeamCrest(item.team)" class="w-full h-full object-contain filter drop-shadow-md">
+                </div>
+                <span class="text-base font-black text-white group-hover:text-indigo-400 transition-colors">{{ item.team.teamName }}</span>
+              </div>
+
+              <div class="col-span-1 flex justify-center">
+                <img [src]="universeService.getFlagUrl(item.team.countryId)" class="w-6 h-4 object-cover rounded shadow-sm opacity-60 group-hover:opacity-100 transition-all">
+              </div>
+
+              <div class="col-span-3">
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">{{ item.leagueName }}</span>
+              </div>
+
+              <div class="col-span-2 flex justify-center items-center gap-2">
+                <div class="px-4 py-2 bg-indigo-600/10 border border-indigo-500/20 rounded-xl text-indigo-400 font-black text-sm min-w-[3.5rem] text-center">
+                  {{ item.team.overall }}
+                </div>
+              </div>
+
+              <div class="col-span-1 flex justify-center">
+                @if (item.team.overallVariation !== undefined) {
+                  @if (item.team.overallVariation > 0) {
+                    <span class="text-[11px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                      +{{ item.team.overallVariation }}
+                    </span>
+                  } @else if (item.team.overallVariation < 0) {
+                    <span class="text-[11px] font-black text-rose-400 bg-rose-500/10 px-2 py-1 rounded-lg border border-rose-500/20">
+                      {{ item.team.overallVariation }}
+                    </span>
+                  } @else {
+                    <span class="text-[11px] font-black text-gray-600">0</span>
+                  }
+                } @else {
+                  <span class="text-[11px] font-black text-gray-800">-</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- HALL DA FAMA REDESIGN -->
+  @if (activeTab() === 'titles') {
+    <!-- Reusing the high-end structure from the Ranking Global for competitions -->
+    <div class="animate-fade-in space-y-12">
+      <div class="text-center space-y-4">
+        <h2 class="text-6xl font-black text-white tracking-tighter uppercase">Histórico de <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">Soberania</span></h2>
+        <p class="text-gray-500 font-medium tracking-widest uppercase text-[10px]">As maiores dinastias do futebol mundial</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        @for(comp of allCompetitionsRankings(); track comp.id) {
+          <div class="bg-[#0a0a0c] border border-white/5 rounded-[3rem] overflow-hidden flex flex-col group hover:border-yellow-500/40 transition-all duration-700 shadow-2xl">
+            <header class="p-8 pb-4 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-yellow-500/10 transition-colors">
+                  @if (comp.countryId) {
+                    <img [src]="universeService.getFlagUrl(comp.countryId)" class="w-6 h-4 object-cover rounded shadow-sm">
+                  } @else {
+                    <i class="fas fa-globe text-indigo-400"></i>
+                  }
+                </div>
+                <h3 class="text-lg font-black text-white tracking-tight truncate max-w-[150px]">{{ comp.name }}</h3>
+              </div>
+              <i class="fas fa-crown text-gray-800 group-hover:text-yellow-500 transition-all duration-500"></i>
+            </header>
+
+            <div class="px-6 pb-8 flex-1 space-y-3">
+              @for(record of comp.records; track record.team.id; let i = $index) {
+                <div class="flex items-center justify-between p-4 rounded-[1.5rem] hover:bg-white/5 transition-all group/item">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-black/40 rounded-xl border border-white/5 p-2 flex items-center justify-center">
+                      <img [src]="universeService.getTeamCrest(record.team)" class="w-full h-full object-contain">
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-xs font-black text-white truncate">{{ record.team.teamName }}</p>
+                      <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">{{ i === 0 ? 'Maior Vencedor' : 'Conquistador' }}</p>
+                    </div>
+                  </div>
+                  <div class="text-lg font-black text-yellow-500 tabular-nums">{{ record.count }}x</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+  
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shine {
+    0% { transform: translateX(-200%) skewX(-45deg); }
+    100% { transform: translateX(200%) skewX(-45deg); }
+  }
+</style>

@@ -1,0 +1,190 @@
+<div class="min-h-screen animate-in fade-in duration-700 pb-20">
+
+  <!-- Portal Header -->
+  <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 border-b border-white/10 pb-8">
+    <div>
+      <h2 class="text-4xl font-black text-white tracking-tighter leading-none flex items-center gap-3">
+        <span
+          class="bg-red-600 text-white text-[10px] px-2 py-1 rounded-sm italic tracking-widest uppercase">Live</span>
+        UNIVERSO <span class="text-indigo-500">NEWS</span>
+      </h2>
+      <p class="text-[10px] font-black uppercase tracking-[0.4em] text-gray-500 mt-2">The Definitive Digital Sports
+        Portal</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="flex items-center bg-gray-900/50 p-1 rounded-2xl border border-white/5 backdrop-blur-md">
+      <button (click)="newsService.activeCategory.set('all')"
+        [class]="'px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ' + (newsService.activeCategory() === 'all' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300')">
+        Home
+      </button>
+      <button (click)="newsService.activeCategory.set('rumors')"
+        [class]="'px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ' + (newsService.activeCategory() === 'rumors' ? 'bg-yellow-500 text-black shadow-lg' : 'text-gray-500 hover:text-gray-300')">
+        Rumores
+      </button>
+      <button (click)="newsService.activeCategory.set('transfers')"
+        [class]="'px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ' + (newsService.activeCategory() === 'transfers' ? 'bg-indigo-600/40 text-white' : 'text-gray-500 hover:text-gray-300')">
+        Mercado
+      </button>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <button (click)="refreshNews()"
+        class="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-400 group transition-all">
+        <i class="fas fa-sync-alt group-hover:rotate-180 transition-transform"></i>
+      </button>
+      <div class="text-right hidden md:block">
+        <p class="text-[9px] font-black text-gray-500 uppercase tracking-widest">Temporada Atual</p>
+        <p class="text-xl font-black text-white italic">#{{ universeService.season() }}</p>
+      </div>
+    </div>
+  </header>
+
+  @if (newsService.filteredNews().length > 0) {
+  <!-- RUMORS TAB (TRANSFERMARKET STYLE) -->
+  @if (newsService.activeCategory() === 'rumors') {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-5 duration-500">
+    @for (article of newsService.filteredNews(); track article.id) {
+    <article
+      class="bg-[#0f172a] rounded-3xl border border-white/10 overflow-hidden shadow-2xl group hover:border-yellow-500/50 transition-all">
+      <div class="p-6 border-b border-white/5 bg-gradient-to-br from-yellow-500/10 to-transparent">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-500">Rumor de Mercado</span>
+          @if (article.playerContext) {
+          <div class="flex flex-col items-end">
+            <span class="text-2xl font-black text-white leading-none">{{ article.playerContext.ovr }}</span>
+            <span class="text-gray-600 text-[10px] font-bold uppercase">OVR</span>
+          </div>
+          }
+        </div>
+        <h3
+          class="text-xl font-black text-white tracking-tight leading-tight group-hover:text-yellow-400 transition-colors">
+          {{ article.title }}</h3>
+      </div>
+
+      <div class="p-6 space-y-6">
+        @if (article.playerContext; as player) {
+        <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+          <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center border border-white/10">
+            <i class="fas fa-user text-gray-600 text-xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <img [src]="getFlagUrl(player.nationality)"
+                class="w-4 h-3 rounded-sm object-cover border border-white/10">
+              <h4 class="text-sm font-black text-white leading-none">{{ player.name }}</h4>
+            </div>
+            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{{ player.age }} ANOS • {{
+              player.nationality }} • OVR {{ player.ovr }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-4 py-2">
+          <div class="flex-1 text-center">
+            <p class="text-[9px] text-gray-600 font-black uppercase mb-1">Origem</p>
+            <p class="text-xs font-black text-gray-300 truncate">{{ player.sourceTeam }}</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+            <i class="fas fa-arrow-right text-yellow-500 text-xs"></i>
+          </div>
+          <div class="flex-1 text-center">
+            <p class="text-[9px] text-gray-600 font-black uppercase mb-1">Interesse</p>
+            <p class="text-xs font-black text-gray-300 truncate">{{ player.targetTeam }}</p>
+          </div>
+        </div>
+        }
+
+        <p class="text-gray-400 text-xs leading-relaxed italic">"{{ article.subtitle }}"</p>
+      </div>
+    </article>
+    }
+  </div>
+  } @else {
+  <!-- HOME / GENERAL FEED -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+    <!-- MAIN COLUMN -->
+    <div class="lg:col-span-8 space-y-10">
+      <!-- Hero Article -->
+      @if (newsService.filteredNews()[0]; as hero) {
+      <article
+        class="relative group cursor-pointer overflow-hidden rounded-[2.5rem] bg-gray-900 border border-white/10 shadow-2xl min-h-[500px] flex items-end">
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-10"></div>
+        <div
+          class="absolute inset-0 opacity-40 group-hover:scale-110 transition-transform duration-700 bg-cover bg-center"
+          [style.background-image]="'url(' + getArticleImage(hero) + ')'">
+        </div>
+
+        <div class="relative z-20 p-10 md:p-14 w-full">
+          <span class="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6"
+            [class]="hero.category === 'transfers' ? 'bg-yellow-500 text-black' : (hero.category === 'results' ? 'bg-indigo-600 text-white' : 'bg-red-600 text-white')">
+            {{ getCategoryLabel(hero.category) | uppercase }}
+          </span>
+          <h1
+            class="text-4xl md:text-6xl font-black text-white tracking-tight leading-none mb-6 group-hover:text-indigo-400 transition-colors">
+            {{ hero.title }}
+          </h1>
+          <p class="text-gray-400 text-lg md:text-xl font-light leading-relaxed max-w-2xl">
+            {{ hero.subtitle }}
+          </p>
+        </div>
+      </article>
+      }
+
+      <!-- Grid general -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        @for (article of newsService.filteredNews().slice(1, 5); track article.id) {
+        <article
+          class="bg-[#0f172a]/60 backdrop-blur-xl rounded-[2rem] border border-white/5 overflow-hidden hover:border-indigo-500/30 transition-all group shadow-xl">
+          <div class="h-48 bg-gray-800 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/80 z-10"></div>
+            <img [src]="getArticleImage(article)"
+              class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-500">
+            <div class="absolute bottom-4 left-6 z-20">
+              <span class="text-[9px] font-black uppercase tracking-widest text-indigo-400">
+                {{ getCategoryLabel(article.category) }}
+              </span>
+            </div>
+          </div>
+          <div class="p-8">
+            <h3 class="text-xl font-black text-white leading-tight mb-4 group-hover:text-indigo-300 transition-colors">
+              {{ article.title }}</h3>
+            <p class="text-gray-500 text-sm line-clamp-3 leading-relaxed">{{ article.content }}</p>
+          </div>
+        </article>
+        }
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="lg:col-span-4 space-y-8">
+      <section class="bg-gray-900 rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
+        <header class="p-6 bg-white/[0.02] border-b border-white/10 flex justify-between items-center">
+          <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Últimas do Portal</h4>
+        </header>
+        <div class="divide-y divide-white/5">
+          @for (article of newsService.filteredNews().slice(5, 12); track article.id) {
+          <div class="p-6 hover:bg-white/5 transition-colors cursor-pointer group">
+            <div class="flex gap-4 items-start">
+              <div class="w-1.5 h-1.5 rounded-full mt-1.5 bg-indigo-500"></div>
+              <div>
+                <h5 class="text-sm font-black text-gray-200 group-hover:text-white leading-tight">{{ article.title }}
+                </h5>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      </section>
+    </aside>
+  </div>
+  }
+  } @else {
+  <!-- Empty State -->
+  <div class="flex flex-col items-center justify-center min-h-[60vh] text-center p-12">
+    <h3 class="text-4xl font-black text-white tracking-tighter mb-4 uppercase">Silêncio no Mercado</h3>
+    <p class="text-gray-400 max-w-md mx-auto">Nenhum rumor ou notícia relevante nesta categoria no momento.</p>
+  </div>
+  }
+
+</div>

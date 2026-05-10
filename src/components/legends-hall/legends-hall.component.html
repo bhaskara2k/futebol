@@ -1,0 +1,157 @@
+<div class="min-h-screen bg-[#0a0908] text-[#eae0d5] p-6 md:p-12 animate-fade-in font-serif relative overflow-hidden">
+    <!-- Vintage Atmosphere -->
+    <div class="absolute inset-0 pointer-events-none opacity-30">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')]"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-[#5e503f]/20 via-transparent to-black"></div>
+    </div>
+
+    <!-- Decorative Corner Ornaments -->
+    <div class="absolute top-8 left-8 w-24 h-24 border-t-2 border-l-2 border-[#c6ac8f]/30 rounded-tl-3xl"></div>
+    <div class="absolute top-8 right-8 w-24 h-24 border-t-2 border-r-2 border-[#c6ac8f]/30 rounded-tr-3xl"></div>
+    <div class="absolute bottom-8 left-8 w-24 h-24 border-b-2 border-l-2 border-[#c6ac8f]/30 rounded-bl-3xl"></div>
+    <div class="absolute bottom-8 right-8 w-24 h-24 border-b-2 border-r-2 border-[#c6ac8f]/30 rounded-br-3xl"></div>
+
+    <div class="relative z-10 max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-16">
+            <div class="flex items-center justify-center gap-4 mb-4">
+                <div class="h-px w-20 bg-gradient-to-r from-transparent to-[#c6ac8f]"></div>
+                <i class="fas fa-scroll text-[#c6ac8f] text-2xl"></i>
+                <div class="h-px w-20 bg-gradient-to-l from-transparent to-[#c6ac8f]"></div>
+            </div>
+            <h1
+                class="text-5xl md:text-7xl font-black uppercase tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-b from-[#f8f7f5] to-[#c6ac8f] drop-shadow-sm mb-4">
+                Lendas Eternas
+            </h1>
+            <p class="text-[#c6ac8f] italic text-lg opacity-80 max-w-2xl mx-auto">
+                "Onde a glória encontra a imortalidade. Um tributo aos mestres que moldaram a história do futsal."
+            </p>
+            <div class="mt-8 flex justify-center">
+                <div
+                    class="px-6 py-2 bg-[#5e503f]/20 border border-[#c6ac8f]/20 rounded-full text-xs uppercase tracking-widest font-bold text-[#c6ac8f]">
+                    Galeria de Honra
+                </div>
+            </div>
+        </header>
+
+        <!-- Legends Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @for (legend of retiredLegends(); track legend.id) {
+            <div (click)="onPlayerClick(legend)"
+                class="group relative bg-[#22333b]/40 backdrop-blur-md rounded-2xl border border-[#c6ac8f]/10 p-1 transition-all duration-500 hover:border-[#c6ac8f]/40 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(198,172,143,0.1)] overflow-hidden cursor-pointer">
+                <!-- Internal Card Border -->
+                <div
+                    class="absolute inset-2 border border-[#c6ac8f]/5 rounded-xl pointer-events-none group-hover:border-[#c6ac8f]/20 transition-colors">
+                </div>
+
+                <div class="p-6 relative">
+                    <!-- Rank/Best Badge -->
+                    @if (legend.bestPlayerInTheWorldAwards && legend.bestPlayerInTheWorldAwards > 0) {
+                    <div class="absolute -top-1 -right-1 group-hover:scale-110 transition-transform duration-500">
+                        <div class="relative">
+                            <i class="fas fa-certificate text-yellow-600/80 text-5xl"></i>
+                            <div
+                                class="absolute inset-0 flex flex-col items-center justify-center text-black font-black leading-none pt-1">
+                                <span class="text-[8px] uppercase tracking-tighter">Gold</span>
+                                <span class="text-xs">{{ legend.bestPlayerInTheWorldAwards }}x</span>
+                            </div>
+                        </div>
+                    </div>
+                    }
+
+                    <!-- Overall Badge -->
+                    <div class="mb-6 flex justify-center">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-[#c6ac8f]/20 blur-xl rounded-full"></div>
+                            <div
+                                class="relative w-20 h-20 rounded-full border-2 border-[#c6ac8f]/40 flex items-center justify-center bg-[#0a0908] z-10 transition-transform group-hover:rotate-[360deg] duration-1000 shadow-[0_0_15px_rgba(198,172,143,0.2)]">
+                                <span class="text-3xl font-black text-[#c6ac8f]">{{ getPeakOverall(legend) }}</span>
+                            </div>
+                            <div
+                                class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[#c6ac8f] text-[#0a0908] text-[10px] font-black uppercase rounded-sm z-20">
+                                LEGEND</div>
+                        </div>
+                    </div>
+
+                    <!-- Name & Nationality -->
+                    <div class="text-center mb-6">
+                        <h3
+                            class="text-2xl font-black text-white group-hover:text-[#c6ac8f] transition-colors mb-2 uppercase tracking-tight">
+                            {{ legend.name }}
+                        </h3>
+                        <div class="flex items-center justify-center gap-2">
+                            <img [src]="universeService.getFlagUrl(legend.nationalityId)"
+                                class="w-4 h-auto rounded-sm grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <span class="text-[10px] uppercase font-bold text-[#c6ac8f]/60 tracking-widest">
+                                {{ universeService.COUNTRY_NAMES[legend.nationalityId] }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Historical Stats -->
+                    <div class="grid grid-cols-2 gap-4 border-t border-[#c6ac8f]/10 pt-6">
+                        <div class="text-center group/stat">
+                            <div
+                                class="text-[10px] text-[#c6ac8f]/40 uppercase font-bold tracking-widest mb-1 group-hover/stat:text-[#c6ac8f] transition-colors">
+                                Partidas</div>
+                            <div class="text-xl font-black text-white italic">{{ getCareerMatches(legend) }}</div>
+                        </div>
+                        <div class="text-center group/stat">
+                            <div
+                                class="text-[10px] text-[#c6ac8f]/40 uppercase font-bold tracking-widest mb-1 group-hover/stat:text-[#c6ac8f] transition-colors">
+                                Gols</div>
+                            <div class="text-xl font-black text-white italic">{{ getCareerGoals(legend) }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Awards Row -->
+                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                        @if (legend.bestPlayerInTheWorldAwards) {
+                        <div
+                            class="flex items-center gap-1.5 px-3 py-1 bg-[#c6ac8f]/10 rounded-full border border-[#c6ac8f]/20">
+                            <i class="fas fa-crown text-[10px] text-yellow-500"></i>
+                            <span class="text-[9px] font-black uppercase text-[#f8f7f5]">The Best</span>
+                        </div>
+                        }
+                        <div
+                            class="flex items-center gap-1.5 px-3 py-1 bg-[#5e503f]/10 rounded-full border border-[#c6ac8f]/10">
+                            <i class="fas fa-ribbon text-[10px] text-[#c6ac8f]"></i>
+                            <span class="text-[9px] font-black uppercase text-[#c6ac8f]">Consagrado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer Decor -->
+                <div class="h-1 w-full bg-gradient-to-r from-transparent via-[#c6ac8f]/30 to-transparent"></div>
+            </div>
+            } @empty {
+            <div
+                class="col-span-full py-20 text-center bg-[#22333b]/20 rounded-3xl border-2 border-dashed border-[#c6ac8f]/10">
+                <i class="fas fa-feather text-4xl text-[#c6ac8f]/20 mb-4"></i>
+                <p class="text-[#c6ac8f]/40 italic">A história ainda está sendo escrita. Nenhuma lenda se aposentou
+                    nesta era.</p>
+            </div>
+            }
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-20 text-center pb-12">
+        <button (click)="back.emit()"
+            class="group relative inline-flex items-center gap-4 px-12 py-4 rounded-full bg-[#5e503f]/10 border border-[#c6ac8f]/30 text-[#c6ac8f] font-black uppercase tracking-[0.2em] text-xs hover:bg-[#c6ac8f] hover:text-[#0a0908] transition-all overflow-hidden shadow-2xl">
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-[#c6ac8f]/20 to-transparent -translate-x-full group-hover:translate-x-0 transition-transform duration-500">
+            </div>
+            <i class="fas fa-arrow-left group-hover:-translate-x-2 transition-transform relative z-10"></i>
+            <span class="relative z-10">Voltar para a História</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
+
+    :host {
+        font-family: 'Cinzel', serif;
+    }
+</style>

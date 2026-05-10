@@ -1,0 +1,110 @@
+<div class="calendar-container w-full max-w-full overflow-hidden animate-fade-in space-y-6">
+  <!-- HEADER -->
+  <div class="bg-[#0a0a0c] rounded-2xl border border-white/5 shadow-2xl p-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+        <i class="fas fa-calendar-alt text-indigo-400"></i>
+      </div>
+      <div>
+        <h2 class="text-xl font-black text-white">Calendário Oficial</h2>
+        <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{{ divisionName() }}</p>
+      </div>
+    </div>
+    <div class="bg-indigo-600/10 px-4 py-2 rounded-xl border border-indigo-500/20">
+      <span class="text-[10px] font-black text-indigo-400 uppercase block leading-none mb-1">Rodada</span>
+      <span class="text-xl font-black text-white">#{{ currentRound() + 1 }}</span>
+    </div>
+  </div>
+
+  <!-- ROUND SELECTOR (SUPER ROBUST SCROLL) -->
+  <div class="relative w-full bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden p-2">
+    <div class="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[#0a0a0c] to-transparent z-10 pointer-events-none"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[#0a0a0c] to-transparent z-10 pointer-events-none"></div>
+    
+    <div class="rounds-scroll-wrapper w-full overflow-x-auto custom-scrollbar-h py-2 px-6">
+      <div class="flex flex-nowrap gap-2" style="min-width: max-content;">
+        @for(round of rounds(); track round) {
+          <button (click)="selectRound(round)"
+            class="flex-none w-12 h-12 rounded-lg text-[10px] font-black transition-all duration-300 flex items-center justify-center border"
+            [class]="selectedRound() === round ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 
+                     (round === currentRound() ? 'bg-indigo-500/5 border-indigo-500/30 text-indigo-400' : 'bg-black/40 border-white/5 text-gray-500 hover:text-white hover:bg-white/5')">
+            R{{ round + 1 }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXTURES GRID (CONTROLLED WIDTH) -->
+  <div class="w-full grid grid-cols-1 xl:grid-cols-2 gap-6">
+    @if (selectedRoundFixtures().length > 0) {
+      @for (match of selectedRoundFixtures(); track match.id) {
+        <div class="match-card bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] p-8 flex items-center justify-between gap-6 hover:border-indigo-500/30 transition-all group min-h-[160px] relative overflow-hidden">
+          
+          <!-- Background Decoration -->
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/0 via-transparent to-transparent group-hover:from-indigo-500/5 transition-all duration-700 pointer-events-none"></div>
+
+          <!-- Home -->
+          <div class="flex-1 flex flex-col items-center text-center gap-4 min-w-0">
+            <div class="w-14 h-14 bg-black/40 rounded-2xl p-2.5 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-xl">
+              <img [src]="universeService.getTeamCrest(match.homeTeam)" class="w-full h-full object-contain filter drop-shadow-md">
+            </div>
+            <span class="text-xs font-black text-white group-hover:text-indigo-300 transition-colors truncate w-full uppercase tracking-tighter">{{ match.homeTeam.teamName }}</span>
+          </div>
+
+          <!-- Result/VS -->
+          <div class="flex-none w-28">
+            @if (match.played) {
+              <button (click)="openMatchDetails(match)"
+                class="w-full bg-white/5 hover:bg-indigo-600 border border-white/10 rounded-2xl py-4 flex flex-col items-center justify-center transition-all duration-500 group/btn shadow-2xl">
+                <div class="flex items-center gap-3">
+                  <span class="text-3xl font-black text-white tabular-nums">{{ match.homeScore }}</span>
+                  <span class="text-gray-600 group-hover/btn:text-white/50">-</span>
+                  <span class="text-3xl font-black text-white tabular-nums">{{ match.awayScore }}</span>
+                </div>
+                <span class="text-[8px] font-black text-indigo-400 group-hover/btn:text-white uppercase tracking-[0.3em] mt-1">Detalhes</span>
+              </button>
+            } @else {
+              <div class="flex flex-col items-center">
+                 <div class="w-20 h-10 bg-black/40 rounded-full border border-white/5 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em]">VS</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-45 animate-[shine_5s_infinite]"></div>
+                 </div>
+                 <p class="text-[8px] font-black text-gray-600 uppercase tracking-widest mt-4">Aguardando</p>
+              </div>
+            }
+          </div>
+
+          <!-- Away -->
+          <div class="flex-1 flex flex-col items-center text-center gap-4 min-w-0">
+            <div class="w-14 h-14 bg-black/40 rounded-2xl p-2.5 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-xl">
+              <img [src]="universeService.getTeamCrest(match.awayTeam)" class="w-full h-full object-contain filter drop-shadow-md">
+            </div>
+            <span class="text-xs font-black text-white group-hover:text-indigo-300 transition-colors truncate w-full uppercase tracking-tighter">{{ match.awayTeam.teamName }}</span>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="col-span-full py-20 bg-black/20 border border-dashed border-white/5 rounded-3xl text-center">
+        <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">Nenhuma partida encontrada</span>
+      </div>
+    }
+  </div>
+</div>
+
+<style>
+  .calendar-container {
+    container-type: inline-size;
+  }
+  .rounds-scroll-wrapper::-webkit-scrollbar {
+    height: 3px;
+  }
+  .rounds-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+  }
+  .rounds-scroll-wrapper {
+    -ms-overflow-style: none;
+    scrollbar-width: thin;
+  }
+</style>

@@ -1,0 +1,50 @@
+<div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4" (click)="onClose()">
+  <div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl border border-yellow-500/30 max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+    <header class="flex justify-between items-center p-4 border-b border-gray-700">
+      <h2 class="text-xl font-bold text-yellow-300"><i class="fas fa-scroll mr-3"></i>Hall da Fama - Melhor do Mundo</h2>
+      <button (click)="onClose()" class="text-gray-400 hover:text-white transition-colors">
+        <i class="fas fa-times text-2xl"></i>
+      </button>
+    </header>
+    
+    <main class="p-4 md:p-6 overflow-y-auto">
+      @if (history().length > 0) {
+        <ul class="space-y-3">
+          @for(record of history(); track record.season) {
+            <li class="bg-gray-900/50 p-3 rounded-lg flex items-center gap-4 border-l-4 border-yellow-400">
+              <div class="flex-shrink-0 font-bold text-gray-400 text-lg w-16 text-center">
+                {{ record.season }}
+              </div>
+              <div class="flex-grow">
+                <p class="font-bold text-lg text-white">{{ record.player.name }}</p>
+                <p class="text-sm text-gray-300">{{ record.teamName }}</p>
+              </div>
+              <div class="flex-shrink-0 flex items-center gap-4">
+                @let ovrColor = record.player.overall | overallColor;
+                <div class="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold" [class]="ovrColor.circle + ' ' + ovrColor.text">
+                  {{ record.player.overall }}
+                </div>
+                <div class="text-xs text-right text-gray-400">
+                  <p>{{ record.stats.goals }} Gols</p>
+                  <p>{{ record.stats.assists }} Assist.</p>
+                  <p>{{ record.stats.motm }} MVPs</p>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="text-center py-10 text-gray-400">
+          <i class="fas fa-history text-4xl mb-3"></i>
+          <p>O histórico de vencedores será construído aqui.</p>
+        </div>
+      }
+    </main>
+    
+    <footer class="p-4 border-t border-gray-700/50 text-center">
+        <button (click)="onClose()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-lg transition-colors">
+            Fechar
+        </button>
+    </footer>
+  </div>
+</div>

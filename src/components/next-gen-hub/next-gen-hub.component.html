@@ -1,0 +1,319 @@
+<div class="min-h-[85vh] bg-[#05070a] text-white p-4 md:p-8 animate-fade-in font-sans relative overflow-hidden">
+    <!-- Technological Background Decor -->
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+        <div
+            class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,_#1e3a8a_0%,_transparent_50%)]">
+        </div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 blur-[120px]"></div>
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto">
+        <!-- Header -->
+        <header
+            class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12 border-b border-cyan-500/20 pb-8">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <span
+                        class="px-2 py-0.5 bg-cyan-500 text-black text-[10px] font-black uppercase tracking-tighter rounded-sm">System
+                        Active</span>
+                    <div class="h-px w-12 bg-cyan-500/50"></div>
+                    <span class="text-cyan-400 text-[10px] font-bold uppercase tracking-widest">Global Talent Scanner
+                        v2.0</span>
+                </div>
+                <h1 class="text-5xl md:text-6xl font-black italic tracking-tighter uppercase">
+                    Radar de <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Promessas</span>
+                </h1>
+                <p class="text-gray-400 mt-2 font-medium tracking-wide">Mapeamento tecnológico de elite - Talentos
+                    Sub-21</p>
+            </div>
+
+            <div class="flex items-center gap-4 text-right">
+                <div class="hidden md:block">
+                    <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Candidatos
+                        Identificados</div>
+                    <div class="text-3xl font-black text-white leading-none">{{ nextGenPlayers().length }}</div>
+                </div>
+                <div class="h-12 w-px bg-white/10 mx-2"></div>
+                <div class="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                    <i class="fas fa-microchip text-2xl text-cyan-400 animate-pulse"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Player List -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-cyan-500">Fluxo de Dados</h2>
+                    <span class="text-[10px] text-gray-500">Live Update</span>
+                </div>
+
+                <div class="max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                    @for (item of nextGenPlayers(); track item.player.id) {
+                    <button (click)="selectPlayer(item.player.id)"
+                        [class]="selectedPlayerId() === item.player.id ? 'bg-cyan-500/20 border-cyan-500/50 ring-1 ring-cyan-500/30' : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'"
+                        class="w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left">
+                        <div class="flex items-center gap-4 overflow-hidden">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-black text-xl border shadow-inner transition-transform group-hover:scale-110"
+                                [class]="(item.player.overall | overallColor).circle + ' ' + (item.player.overall | overallColor).text">
+                                {{ item.player.overall }}
+                            </div>
+                            <div class="truncate">
+                                <div class="text-white font-bold group-hover:text-cyan-300 transition-colors truncate">
+                                    {{ item.player.name }}</div>
+                                <div
+                                    class="text-[10px] text-gray-500 uppercase font-bold truncate flex items-center gap-1.5">
+                                    <img [src]="universeService.getFlagUrl(item.player.nationalityId)"
+                                        class="w-3 h-2 rounded-sm opacity-80 shadow-[0_0_5px_rgba(255,255,255,0.2)]">
+                                    {{ item.team.teamName }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-sm font-black italic"
+                                [class]="item.growth > 0 ? 'text-emerald-400' : 'text-gray-500'">
+                                {{ item.growth > 0 ? '+' + item.growth : 'STB' }}
+                            </div>
+                            <div class="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Growth</div>
+                        </div>
+                    </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Column: Player Profile & Radar -->
+            <div class="lg:col-span-8">
+                @if (selectedPlayerInfo(); as selected) {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                    <!-- Details Card -->
+                    <div class="space-y-6">
+                        <div
+                            class="relative aspect-square md:aspect-auto md:h-80 bg-gradient-to-br from-gray-900 to-black rounded-3xl border border-cyan-500/20 overflow-hidden group">
+                            <!-- Background visual -->
+                            <div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <div
+                                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[150%] bg-cyan-500 blur-[80px] rounded-full rotate-45">
+                                </div>
+                            </div>
+
+                            <div class="relative z-10 p-8 h-full flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex flex-col">
+                                        <span class="text-5xl font-black italic text-cyan-500/50 leading-none">#{{
+                                            selected.player.number }}</span>
+                                        <span
+                                            class="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400 mt-1">Prospect
+                                            ID</span>
+                                    </div>
+                                    <div
+                                        class="px-4 py-2 bg-black/50 backdrop-blur-md rounded-xl border border-white/10">
+                                        <div
+                                            class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">
+                                            Idade</div>
+                                        <div class="text-2xl font-black text-white text-center">{{ selected.player.age
+                                            }} <span class="text-xs text-gray-500 italic">anos</span></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3
+                                        class="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white mb-2 leading-none drop-shadow-2xl">
+                                        {{ selected.player.name }}
+                                    </h3>
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex items-center gap-2 px-2.5 py-1 bg-white/[0.03] border border-white/10 rounded-lg backdrop-blur-sm group/nat">
+                                            <img [src]="universeService.getFlagUrl(selected.player.nationalityId)"
+                                                class="w-5 h-auto rounded shadow-lg group-hover/nat:scale-110 transition-transform">
+                                            <span
+                                                class="text-[10px] font-black tracking-widest text-gray-300 uppercase">
+                                                {{ universeService.COUNTRY_NAMES[selected.player.nationalityId] }}
+                                            </span>
+                                        </div>
+                                        <span class="text-gray-700 font-bold">/</span>
+                                        <span
+                                            class="px-2 py-1 bg-cyan-500/10 text-cyan-400 text-[10px] font-bold rounded-lg border border-cyan-500/20 uppercase tracking-tight">
+                                            {{ selected.team.teamName }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+                            <button (click)="onPlayerClick(selected.player, selected.team)"
+                                class="absolute bottom-6 right-6 w-14 h-14 bg-cyan-500 hover:bg-cyan-400 text-black rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.5)] transition-all hover:scale-110 active:scale-95 group/btn">
+                                <i
+                                    class="fas fa-external-link-alt text-xl group-hover/btn:rotate-12 transition-transform"></i>
+                            </button>
+                        </div>
+
+                        <!-- Stats Mini Grid -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-gray-900/50 p-4 rounded-2xl border border-white/5">
+                                <div class="text-[9px] text-gray-500 font-bold uppercase mb-1">Market Value</div>
+                                <div class="text-lg font-black text-white">{{ selected.player.marketValue / 1000000 |
+                                    number:'1.1-1' }}M</div>
+                            </div>
+                            <div class="bg-gray-900/50 p-4 rounded-2xl border border-white/5">
+                                <div class="text-[9px] text-gray-500 font-bold uppercase mb-1">Season Goals</div>
+                                <div class="text-lg font-black text-white">{{ selected.player.stats.goals }}</div>
+                            </div>
+                            <div class="bg-gray-900/50 p-4 rounded-2xl border border-white/5">
+                                <div class="text-[9px] text-gray-400 font-bold uppercase mb-1">Contract</div>
+                                <div class="text-lg font-black text-white italic">{{ selected.player.contractYears }}
+                                    <span class="text-xs opacity-50">ans</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radar Chart Area -->
+                    <div
+                        class="relative bg-black/40 rounded-3xl border border-white/5 p-8 flex flex-col items-center justify-center overflow-hidden group">
+                        <div
+                            class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_#0e7490_0%,_transparent_70%)] opacity-10">
+                        </div>
+
+                        <h4 class="text-xs font-black uppercase tracking-widest text-cyan-400 mb-8 z-10">Perfil de
+                            Atributos</h4>
+
+                        <div class="relative w-full max-w-[300px] aspect-square z-10">
+                            <!-- SVG Radar Chart -->
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                                <!-- Background Hexagons -->
+                                <polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="none"
+                                    class="stroke-white/10" stroke-width="0.5" />
+                                <polygon points="50,25 75,37.5 75,62.5 50,75 25,62.5 25,37.5" fill="none"
+                                    class="stroke-white/10" stroke-width="0.5" />
+
+                                <!-- Axis Lines -->
+                                <line x1="50" y1="50" x2="50" y2="10" class="stroke-white/5" stroke-width="0.5" />
+                                <line x1="50" y1="50" x2="90" y2="30" class="stroke-white/5" stroke-width="0.5" />
+                                <line x1="50" y1="50" x2="90" y2="70" class="stroke-white/5" stroke-width="0.5" />
+                                <line x1="50" y1="50" x2="50" y2="90" class="stroke-white/5" stroke-width="0.5" />
+                                <line x1="50" y1="50" x2="10" y2="70" class="stroke-white/5" stroke-width="0.5" />
+                                <line x1="50" y1="50" x2="10" y2="30" class="stroke-white/5" stroke-width="0.5" />
+
+                                <!-- The Data Radar -->
+                                @if (playerAttributes(); as attrs) {
+                                <polygon [attr.points]="getRadarPoints(attrs)" fill="rgba(6, 182, 212, 0.25)"
+                                    stroke="#06b6d4" stroke-width="1.5" class="transition-all duration-700 ease-out"
+                                    style="filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.6))" />
+
+                                <!-- Vertices Dots -->
+                                @for (point of getRadarPoints(attrs).split(' '); track $index) {
+                                <circle [attr.cx]="point.split(',')[0]" [attr.cy]="point.split(',')[1]" r="1.5"
+                                    fill="#06b6d4" class="transition-all duration-700 ease-out" />
+                                }
+                                }
+                            </svg>
+
+                            <!-- Labels -->
+                            @if (playerAttributes(); as attrs) {
+                            <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 text-center">
+                                <div class="text-[10px] font-black text-cyan-400">PAC</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.pace }}</div>
+                            </div>
+                            <div class="absolute top-[20%] right-[-15%] text-center">
+                                <div class="text-[10px] font-black text-cyan-400">SHO</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.shooting }}</div>
+                            </div>
+                            <div class="absolute bottom-[20%] right-[-15%] text-center">
+                                <div class="text-[10px] font-black text-cyan-400">PAS</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.passing }}</div>
+                            </div>
+                            <div class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 text-center">
+                                <div class="text-[10px] font-black text-cyan-400">DRI</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.dribbling }}</div>
+                            </div>
+                            <div class="absolute bottom-[20%] left-[-15%] text-center">
+                                <div class="text-[10px] font-black text-cyan-400">DEF</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.defending }}</div>
+                            </div>
+                            <div class="absolute top-[20%] left-[-15%] text-center">
+                                <div class="text-[10px] font-black text-cyan-400">PHY</div>
+                                <div class="text-xs font-bold text-white">{{ attrs.physical }}</div>
+                            </div>
+                            }
+                        </div>
+
+                        <!-- Recommendation Badge -->
+                        <div
+                            class="mt-8 px-6 py-2 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-full flex items-center gap-3">
+                            <i class="fas fa-check-circle text-cyan-400 text-sm"></i>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-white">Recomendado pelo
+                                Sistema</span>
+                        </div>
+
+                        <!-- Global Hotspots (Mapa de Berços) -->
+                        <div class="mt-8 w-full border-t border-cyan-900/30 pt-6">
+                            <div class="flex items-center gap-2 mb-4">
+                                <i class="fas fa-satellite-dish text-cyan-400 text-xs animate-pulse"></i>
+                                <h4 class="text-[10px] font-black uppercase tracking-widest text-gray-400">Zonas de
+                                    Elite (Berçário Global)</h4>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                @for (spot of hotspots(); track spot.id) {
+                                <div
+                                    class="flex items-center justify-between p-2 bg-white/[0.03] border border-white/5 rounded-lg">
+                                    <div class="flex items-center gap-2">
+                                        <img [src]="universeService.getFlagUrl(spot.id)"
+                                            class="w-4 h-auto rounded-sm opacity-80">
+                                        <span class="text-[10px] font-bold text-gray-300">{{ spot.name }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-12 h-1 bg-gray-800 rounded-full overflow-hidden">
+                                            <div class="h-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]"
+                                                [style.width.%]="spot.percentage"></div>
+                                        </div>
+                                        <span class="text-[9px] font-black text-cyan-400">{{ spot.count }}</span>
+                                    </div>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-16 text-center pb-8">
+        <button (click)="back.emit()"
+            class="group relative inline-flex items-center gap-4 px-10 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-black uppercase tracking-[0.2em] text-[10px] hover:bg-cyan-500 hover:text-black transition-all overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-transparent -translate-x-full group-hover:translate-x-0 transition-transform duration-500">
+            </div>
+            <i class="fas fa-chevron-left group-hover:-translate-x-1 transition-transform relative z-10"></i>
+            <span class="relative z-10">Desconectar do Radar</span>
+        </button>
+    </div>
+</div>
+
+<style>
+    .drop-shadow-glow {
+        filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.4));
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(6, 182, 212, 0.3);
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(6, 182, 212, 0.5);
+    }
+</style>

@@ -1,0 +1,22 @@
+{
+  "saves": [
+    {
+      "id": "1704153600000",
+      "name": "Desafio Hardcore - RENAMED",
+      "createdAt": "2024-01-02T00:00:00Z",
+      "lastPlayedAt": "2024-01-02T01:00:00Z",
+      "currentSeason": 3,
+      "playtimeMs": 3600000,
+      "autoSave": false
+    },
+    {
+      "id": "autosave",
+      "name": "Autosave",
+      "createdAt": "2024-01-03T00:00:00Z",
+      "lastPlayedAt": "2024-01-03T00:30:00Z",
+      "currentSeason": 1,
+      "playtimeMs": 1800000,
+      "autoSave": true
+    }
+  ]
+}

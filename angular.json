@@ -1,0 +1,70 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "",
+  "projects": {
+    "app": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "./",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": {
+              "base": "./dist",
+              "browser": "."
+            },
+            "browser": "index.tsx",
+            "index": "index.html",
+            "tsConfig": "tsconfig.json",
+            "assets": [
+              "favicon.ico",
+              "favicon.png",
+              "DEFINITIVE_BALL.png",
+              "bola_azul.png",
+              {
+                "glob": "**/*",
+                "input": "public",
+                "output": "./"
+              }
+            ],
+            "styles": [
+              "index.css"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 3007
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "app:build:production"
+            },
+            "development": {
+              "buildTarget": "app:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": "97b237fb-f223-4ca7-aed7-8627c8af6175"
+  }
+}

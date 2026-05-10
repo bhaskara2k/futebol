@@ -1,0 +1,424 @@
+<div class="w-full max-w-6xl mx-auto">
+  @if (!selectedRivalry()) {
+  <!-- SELEÇÃO DE RIVALIDADES -->
+  <div class="animate-fade-in relative z-10">
+    <!-- Header -->
+    <header class="text-center mb-12 relative overflow-hidden py-10">
+      <!-- Botão Adicionar -->
+      <div class="absolute top-4 right-4 z-20">
+        <button (click)="toggleCreate()"
+          class="bg-white/10 hover:bg-red-600 backdrop-blur-md border border-white/10 text-white px-4 py-2 rounded-full font-bold shadow-lg transition-all hover:scale-105 flex items-center gap-2 group text-xs uppercase tracking-wider">
+          <i class="fas fa-plus group-hover:rotate-90 transition-transform"></i> <span class="hidden sm:inline">Nova
+            Rivalidade</span>
+        </button>
+      </div>
+
+      <!-- Efeito de fundo decorativo -->
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] pointer-events-none">
+      </div>
+
+      <div
+        class="inline-flex items-center justify-center p-4 bg-gray-900/80 rounded-full border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)] mb-6 backdrop-blur-sm">
+        <i class="fas fa-fire text-3xl text-red-500 animate-pulse-slow"></i>
+      </div>
+      <h2 class="text-5xl md:text-6xl font-black text-white tracking-tight uppercase drop-shadow-2xl">
+        Grandes <span
+          class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-500 font-cursive">Rivalidades</span>
+      </h2>
+      <p class="text-lg text-gray-400 mt-4 max-w-2xl mx-auto font-light">O palco onde lendas são forjadas.</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 pb-12">
+      @for (rivalry of rivalries(); track rivalry.name) {
+      <button (click)="selectRivalry(rivalry)"
+        class="relative group overflow-hidden bg-gray-900/40 backdrop-blur-sm rounded-3xl border border-white/5 shadow-2xl transition-all duration-500 hover:shadow-red-600/20 hover:-translate-y-2 min-h-[20rem] w-full text-left flex flex-col">
+
+        <!-- Background Fx -->
+        <div class="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black group-hover:scale-110 transition-transform duration-1000"></div>
+        
+        <!-- Animated Red Glow -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-red-600/10 rounded-full blur-[80px] group-hover:bg-red-600/20 transition-colors"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-600/5 rounded-full blur-[80px]"></div>
+
+        <!-- Conteúdo -->
+        <div class="relative p-8 h-full flex flex-col items-center justify-between z-10 w-full text-center">
+          
+          <div class="w-full flex flex-col items-center">
+            <h3 class="text-2xl font-black text-white uppercase tracking-tighter mb-1 group-hover:text-red-500 transition-colors duration-300">
+              {{ rivalry.name }}
+            </h3>
+            <div class="h-1 w-12 bg-gradient-to-r from-red-600 to-orange-500 rounded-full mb-6"></div>
+          </div>
+
+          <div class="flex items-center justify-center gap-6 w-full py-4">
+            <!-- Team A -->
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="relative">
+                <div class="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <img [src]="getLogoUrl(rivalry.teamA)" [alt]="rivalry.teamA" 
+                  class="w-16 h-16 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-transform duration-500 group-hover:scale-110">
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center">
+              <span class="text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-gray-400 to-gray-700 group-hover:from-red-500 group-hover:to-red-700 transition-all duration-500">VS</span>
+            </div>
+
+            <!-- Team B -->
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <div class="relative">
+                <div class="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <img [src]="getLogoUrl(rivalry.teamB)" [alt]="rivalry.teamB" 
+                  class="w-16 h-16 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-transform duration-500 group-hover:scale-110">
+              </div>
+            </div>
+          </div>
+
+          <div class="w-full flex flex-col items-center gap-2 mt-4">
+             <div class="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                <span class="truncate max-w-[100px]">{{ rivalry.teamA }}</span>
+                <span class="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+                <span class="truncate max-w-[100px]">{{ rivalry.teamB }}</span>
+             </div>
+             
+             <div class="mt-4 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-all duration-300">
+                Ver Histórico
+             </div>
+          </div>
+        </div>
+
+        <!-- Border Glow -->
+        <div class="absolute inset-0 border border-white/0 group-hover:border-red-600/30 transition-all duration-500 rounded-3xl pointer-events-none"></div>
+      </button>
+      }
+    </div>
+
+    <!-- MODAL DE CRIAÇÃO -->
+    @if (isCreating()) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in pl-20 lg:pl-0">
+      <div
+        class="bg-gray-900 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+        <!-- Background fx -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <button (click)="toggleCreate()"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <h3 class="text-2xl font-black text-white mb-1 uppercase">Criar Rivalidade</h3>
+        <p class="text-gray-400 text-xs mb-6">Defina um novo clássico para a história.</p>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-gray-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Nome do
+              Clássico</label>
+            <input type="text" [ngModel]="newRivalryName()" (ngModelChange)="newRivalryName.set($event)"
+              class="w-full bg-black/40 border border-gray-700/50 rounded-lg p-3 text-white focus:border-red-500 focus:bg-black/60 outline-none transition-all placeholder-gray-600 font-bold"
+              placeholder="Ex: Derby da Capital">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-gray-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Time Mandante
+                (A)</label>
+              <select [ngModel]="newRivalryTeamAId()" (ngModelChange)="newRivalryTeamAId.set($event)"
+                class="w-full bg-black/40 border border-gray-700/50 rounded-lg p-3 text-white focus:border-red-500 outline-none text-xs">
+                <option value="" class="bg-gray-900">Selecione...</option>
+                @for(team of sortedTeams(); track team.id) {
+                <option [value]="team.id" class="bg-gray-900">{{ team.teamName }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-gray-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Time Visitante
+                (B)</label>
+              <select [ngModel]="newRivalryTeamBId()" (ngModelChange)="newRivalryTeamBId.set($event)"
+                class="w-full bg-black/40 border border-gray-700/50 rounded-lg p-3 text-white focus:border-red-500 outline-none text-xs">
+                <option value="" class="bg-gray-900">Selecione...</option>
+                @for(team of sortedTeams(); track team.id) {
+                <option [value]="team.id" class="bg-gray-900">{{ team.teamName }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          @if (newRivalryTeamAId() && newRivalryTeamAId() === newRivalryTeamBId()) {
+          <div class="text-red-500 text-xs font-bold text-center animate-pulse">
+            <i class="fas fa-exclamation-triangle mr-1"></i> Os times devem ser diferentes.
+          </div>
+          }
+
+          <button (click)="saveNewRivalry()"
+            [disabled]="!newRivalryName() || !newRivalryTeamAId() || !newRivalryTeamBId() || newRivalryTeamAId() === newRivalryTeamBId()"
+            class="w-full bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-black uppercase tracking-widest py-4 rounded-lg mt-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-red-500/20">
+            <i class="fas fa-save mr-2"></i> Salvar Rivalidade
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+
+  </div>
+  } @else {
+  <!-- DETALHES DA RIVALIDADE -->
+  @if (rivalryDetails(); as details) {
+  <div class="animate-fade-in pb-12">
+    <!-- Navigation Back -->
+    <button (click)="goBackToSelection()"
+      class="mb-6 ml-4 md:ml-0 flex items-center gap-3 text-gray-400 hover:text-white transition-colors group px-4 py-2 rounded-lg hover:bg-white/5 w-fit">
+      <div
+        class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm">
+        <i class="fas fa-arrow-left text-xs"></i>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-widest">Voltar para Rivalidades</span>
+    </button>
+
+    <!-- VS Header Banner -->
+    <div
+      class="relative w-full bg-gradient-to-br from-gray-900 to-black rounded-3xl overflow-hidden shadow-2xl border border-white/10 mb-8 mx-auto">
+      <!-- Background FX -->
+      <div class="absolute inset-0">
+        <div
+          class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20">
+        </div>
+      </div>
+
+      <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 items-center py-12 px-6 gap-8 text-center">
+        <!-- Team A -->
+        <div class="flex flex-col items-center order-2 md:order-1">
+          <!-- Team A Avatar -->
+          @if (details.teamA.logoUrl || hasLogo(details.teamA.teamName)) {
+          <div
+            class="w-32 h-32 bg-blue-900/40 rounded-full border-4 border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)] mb-4 backdrop-blur-sm group hover:scale-105 transition-transform overflow-hidden p-3 relative">
+            <img [src]="details.teamA.logoUrl || getLogoUrl(details.teamA.teamName)" [alt]="details.teamA.teamName"
+              class="w-full h-full object-contain"
+              (error)="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex'">
+            <span
+              class="hidden absolute inset-0 items-center justify-center text-4xl font-black text-blue-400 tracking-tight">{{
+              getInitials(details.teamA.teamName) }}</span>
+          </div>
+          } @else {
+          <div
+            class="w-32 h-32 bg-blue-900/40 rounded-full border-4 border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)] mb-4 backdrop-blur-sm group hover:scale-105 transition-transform">
+            <span class="text-4xl font-black text-blue-400 tracking-tight">{{ getInitials(details.teamA.teamName)
+              }}</span>
+          </div>
+          }
+
+          <h2 class="text-2xl md:text-3xl font-black text-white leading-tight uppercase drop-shadow-lg max-w-[250px]">{{
+            details.teamA.teamName }}</h2>
+          <div class="mt-3 inline-flex items-center gap-2 bg-blue-500/10 px-3 py-1 rounded border border-blue-500/20">
+            <span class="text-blue-400 font-bold font-mono">{{ details.teamA.overall }} OVR</span>
+          </div>
+        </div>
+
+        <!-- VS Center -->
+        <div class="flex flex-col items-center justify-center order-1 md:order-2">
+          <div
+            class="text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-400 to-gray-800 italic tracking-tight drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transform -skew-x-12">
+            VS
+          </div>
+          <div
+            class="mt-2 text-gray-500 font-bold uppercase tracking-[0.3em] text-xs text-center border-t border-b border-gray-700 py-1">
+            {{
+            selectedRivalry()?.name }}</div>
+        </div>
+
+        <!-- Team B -->
+        <div class="flex flex-col items-center order-3">
+          <!-- Team B Avatar -->
+          @if (details.teamB.logoUrl || hasLogo(details.teamB.teamName)) {
+          <div
+            class="w-32 h-32 bg-red-900/40 rounded-full border-4 border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.2)] mb-4 backdrop-blur-sm group hover:scale-105 transition-transform overflow-hidden p-3 relative">
+            <img [src]="details.teamB.logoUrl || getLogoUrl(details.teamB.teamName)" [alt]="details.teamB.teamName"
+              class="w-full h-full object-contain"
+              (error)="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex'">
+            <span
+              class="hidden absolute inset-0 items-center justify-center text-4xl font-black text-red-400 tracking-tight">{{
+              getInitials(details.teamB.teamName) }}</span>
+          </div>
+          } @else {
+          <div
+            class="w-32 h-32 bg-red-900/40 rounded-full border-4 border-white/10 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.2)] mb-4 backdrop-blur-sm group hover:scale-105 transition-transform">
+            <span class="text-4xl font-black text-red-400 tracking-tight">{{ getInitials(details.teamB.teamName)
+              }}</span>
+          </div>
+          }
+
+          <h2 class="text-2xl md:text-3xl font-black text-white leading-tight uppercase drop-shadow-lg max-w-[250px]">{{
+            details.teamB.teamName }}</h2>
+          <div class="mt-3 inline-flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded border border-red-500/20">
+            <span class="text-red-400 font-bold font-mono">{{ details.teamB.overall }} OVR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats & History Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 md:px-0">
+
+      <!-- Confronto Direto (Left Panel) -->
+      <div class="lg:col-span-1 bg-gray-900/60 rounded-3xl border border-white/5 p-8 backdrop-blur-sm shadow-2xl h-fit">
+        <h4
+          class="text-center text-indigo-400 font-black uppercase tracking-widest text-xs mb-8 flex items-center justify-center gap-2 border-b border-white/5 pb-4">
+          <i class="fas fa-balance-scale text-lg"></i> Estatísticas
+        </h4>
+
+        <div class="flex items-end justify-between px-2 mb-2">
+          <div class="text-center group">
+            <div class="text-5xl font-black text-blue-500 group-hover:scale-110 transition-transform duration-300">{{
+              details.h2h.teamAWins }}</div>
+            <div class="text-[9px] text-blue-400 font-bold uppercase mt-1 tracking-widest">Vitórias</div>
+          </div>
+          <div class="text-center pb-2 opacity-50">
+            <div class="text-2xl font-bold text-white">{{ details.h2h.draws }}</div>
+            <div class="text-[9px] text-gray-400 font-bold uppercase">Empates</div>
+          </div>
+          <div class="text-center group">
+            <div class="text-5xl font-black text-red-500 group-hover:scale-110 transition-transform duration-300">{{
+              details.h2h.teamBWins }}</div>
+            <div class="text-[9px] text-red-400 font-bold uppercase mt-1 tracking-widest">Vitórias</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar Visualization -->
+        <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden flex mb-10 shadow-inner">
+          @let totalGames = details.h2h.teamAWins + details.h2h.teamBWins + details.h2h.draws;
+          @let percentA = (totalGames > 0) ? (details.h2h.teamAWins / totalGames) * 100 : 33;
+          @let percentDraw = (totalGames > 0) ? (details.h2h.draws / totalGames) * 100 : 33;
+
+          <div class="h-full bg-blue-500 relative group" [style.width.%]="percentA" title="Vitórias A">
+            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </div>
+          <div class="h-full bg-gray-600 relative group" [style.width.%]="percentDraw" title="Empates"></div>
+          <div class="h-full bg-red-500 flex-grow relative group" title="Vitórias B">
+            <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </div>
+        </div>
+
+        <!-- Trophy Comparison -->
+        <div class="space-y-6">
+          <h5 class="text-xs text-center text-gray-500 uppercase font-black tracking-widest mb-4">Sala de Troféus</h5>
+          @for(trophy of [
+          {label: 'Ligas Nacionais', icon: 'fa-trophy', key: 'national_league'},
+          {label: 'Copas Nacionais', icon: 'fa-wine-glass', key: 'national_cup'},
+          {label: 'Continentais', icon: 'fa-globe-americas', key: 'international'},
+          {label: 'Mundiais', icon: 'fa-globe', key: 'world'}
+          ]; track trophy.key) {
+          @let countA = getTrophyCount(details.teamA, trophy.key);
+          @let countB = getTrophyCount(details.teamB, trophy.key);
+          <div class="relative group">
+            <div class="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent">
+            </div>
+            <div class="flex items-center justify-between text-sm py-3 px-2">
+              <div class="font-black text-blue-400 w-8 text-center text-lg" [class.opacity-30]="countA === 0">{{ countA
+                }}</div>
+              <div class="flex flex-col items-center">
+                <i
+                  class="fas {{trophy.icon}} text-gray-600 mb-1 text-xs group-hover:text-indigo-400 transition-colors"></i>
+                <div class="text-gray-400 text-[10px] uppercase font-bold tracking-wider">{{ trophy.label }}</div>
+              </div>
+              <div class="font-black text-red-400 w-8 text-center text-lg" [class.opacity-30]="countB === 0">{{ countB
+                }}</div>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Match List (Right Panel) -->
+      <div
+        class="lg:col-span-2 bg-gray-900/60 rounded-3xl border border-white/5 overflow-hidden shadow-2xl flex flex-col h-[600px] backdrop-blur-sm">
+        <div class="p-6 border-b border-white/5 bg-white/5 flex justify-between items-center z-10 relative">
+          <h4 class="text-gray-200 font-bold flex items-center gap-3">
+            <i class="fas fa-history text-indigo-400"></i> Linha do Tempo
+          </h4>
+          <span
+            class="text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30 tracking-wide">{{
+            details.h2h.history.length }} jogos</span>
+        </div>
+
+        <div
+          class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4 bg-gradient-to-b from-gray-900/50 to-black/20">
+          @if (details.h2h.history.length > 0) {
+          @for (game of details.h2h.history; track $index) {
+          <div
+            class="bg-gray-800/40 rounded-2xl p-0 border border-white/5 hover:bg-gray-800 hover:border-white/20 transition-all group overflow-hidden relative">
+
+            <div class="absolute left-0 top-0 bottom-0 w-1"
+              [class]="game.homeScore > game.awayScore ? 'bg-blue-500' : game.awayScore > game.homeScore ? 'bg-red-500' : 'bg-gray-500'">
+            </div>
+
+            <div class="p-4 flex flex-col sm:flex-row items-center gap-4">
+              <!-- Date/Season -->
+              <div
+                class="text-[10px] text-gray-500 font-mono font-bold uppercase min-w-[3rem] text-center sm:text-left">
+                Temp <div class="text-lg text-white font-black">{{ game.season }}</div>
+              </div>
+
+              <!-- Scoreboard -->
+              <div class="flex-1 w-full grid grid-cols-3 gap-2 items-center">
+                <!-- Home -->
+                <div class="text-right">
+                  <span class="font-bold text-sm block truncate group-hover:text-white transition-colors"
+                    [class.text-blue-400]="game.homeScore > game.awayScore"
+                    [class.text-gray-400]="game.homeScore <= game.awayScore">{{ game.homeTeamName }}</span>
+                </div>
+
+                <!-- Score -->
+                <div
+                  class="bg-black/40 px-4 py-2 rounded-lg border border-white/5 font-mono font-black text-xl text-white text-center shadow-inner">
+                  {{ game.homeScore }} <span class="text-gray-600 text-sm mx-1">-</span> {{ game.awayScore }}
+                </div>
+
+                <!-- Away -->
+                <div class="text-left">
+                  <span class="font-bold text-sm block truncate group-hover:text-white transition-colors"
+                    [class.text-red-400]="game.awayScore > game.homeScore"
+                    [class.text-gray-400]="game.awayScore <= game.homeScore">{{ game.awayTeamName }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
+          } @else {
+          <div class="flex flex-col items-center justify-center h-full text-gray-500 opacity-60">
+            <i class="fas fa-wind text-5xl mb-4 text-gray-700"></i>
+            <p class="text-lg font-medium">O vento sopra sobre um campo vazio...</p>
+            <p class="text-xs mt-2 uppercase tracking-widest">Nenhum confronto registrado</p>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+  }
+</div>
+
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .font-cursive {
+    font-family: 'Brush Script MT', cursive;
+    /* Fallback simples e elegante */
+  }
+</style>

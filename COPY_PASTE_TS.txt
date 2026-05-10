@@ -1,0 +1,143 @@
+// ════════════════════════════════════════════════════════════════════════
+// CÓDIGO PARA COPIAR E COLAR NO app.component.ts
+// ════════════════════════════════════════════════════════════════════════
+
+// ────────────────────────────────────────────────────────────────────────
+// 1. ADICIONAR ESTES IMPORTS NO TOPO DO ARQUIVO (após os imports existentes)
+// ────────────────────────────────────────────────────────────────────────
+
+import { GameStateService } from './services/game-state.service';
+import { SaveLoadMenuComponent } from './components/save-load-menu/save-load-menu.component';
+
+
+// ────────────────────────────────────────────────────────────────────────
+// 2. INJETAR O SERVIÇO (após a linha: seasonService = inject(SeasonService);)
+// ────────────────────────────────────────────────────────────────────────
+
+gameStateService = inject(GameStateService);
+
+
+// ────────────────────────────────────────────────────────────────────────
+// 3. ADICIONAR SIGNAL (após a linha: quickRankingLeagueId = signal<string>('BRA');)
+// ────────────────────────────────────────────────────────────────────────
+
+showSaveMenu = signal(false);
+
+
+// ────────────────────────────────────────────────────────────────────────
+// 4. ADICIONAR MÉTODOS NO FINAL DA CLASSE AppComponent (antes do último })
+// ────────────────────────────────────────────────────────────────────────
+
+// ==================== FIREBASE SAVE/LOAD ====================
+
+/**
+ * Salva o jogo manualmente com um nome personalizado
+ */
+async saveGame(name: string): Promise<void> {
+  try {
+    await this.gameStateService.saveGame(name);
+    console.log('✅ Jogo salvo com sucesso!');
+  } catch (error) {
+    console.error('❌ Erro ao salvar jogo:', error);
+    alert('Erro ao salvar o jogo. Verifique o console para mais detalhes.');
+  }
+}
+
+/**
+ * Carrega um jogo salvo
+ */
+async loadGame(gameState: any): Promise<void> {
+  try {
+    this.gameStateService.importGameState(gameState);
+    console.log('✅ Jogo carregado com sucesso!');
+    
+    // Atualiza a view para o menu principal
+    this.view.set('main_menu');
+    this.showSaveMenu.set(false);
+  } catch (error) {
+    console.error('❌ Erro ao carregar jogo:', error);
+    alert('Erro ao carregar o jogo. Verifique o console para mais detalhes.');
+  }
+}
+
+/**
+ * Auto-save ao avançar rodada
+ * Chame este método ao final de cada rodada
+ */
+private async autoSaveGame(): Promise<void> {
+  try {
+    await this.gameStateService.autoSaveIfEnabled();
+  } catch (error) {
+    console.error('⚠️ Erro no auto-save:', error);
+    // Não mostra erro ao usuário para não interromper o jogo
+  }
+}
+
+
+// ────────────────────────────────────────────────────────────────────────
+// 5. MODIFICAR O MÉTODO simulateDivisionRound
+//    Encontre o método e adicione a linha do auto-save no final
+// ────────────────────────────────────────────────────────────────────────
+
+async simulateDivisionRound(): Promise<void> {
+  const leagueId = this.selectedLeagueId();
+  const divisionIndex = this.activeDivisionTab();
+  if (leagueId) {
+    this.playerOfTheRound.set(null);
+    this.teamOfTheRound.set({goalkeeper: null, outfielders: []});
+    await this.nationalCompetitionService.simulateDivisionRound(leagueId, divisionIndex);
+
+    const league = this.selectedLeague();
+    const division = this.activeDivision();
+    if (league && division) {
+        const roundFixtures = division.fixtures[league.currentRound] || [];
+        this.calculateRoundPerformances(roundFixtures);
+    }
+    
+    // ← ADICIONE ESTA LINHA:
+    await this.autoSaveGame();
+  }
+}
+
+
+// ────────────────────────────────────────────────────────────────────────
+// 6. ADICIONAR SaveLoadMenuComponent AOS IMPORTS DO @Component
+//    Encontre a linha "imports: [" e adicione SaveLoadMenuComponent
+// ────────────────────────────────────────────────────────────────────────
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule, 
+    LeagueTableComponent, 
+    FixturesComponent, 
+    PlayerStatsComponent, 
+    CupViewComponent, 
+    MatchDetailsModalComponent, 
+    HistoryViewComponent, 
+    TeamsViewComponent, 
+    TransfersViewComponent, 
+    PlayerDetailsModalComponent, 
+    TeamDetailsModalComponent, 
+    InternationalCompetitionViewComponent, 
+    RecordsViewComponent, 
+    NewsCenterComponent, 
+    OverallColorPipe, 
+    DivisionSetupComponent, 
+    AnalysisCenterComponent, 
+    RivalriesComponent, 
+    GlobalScoutComponent, 
+    NationalTeamsHubComponent, 
+    CalendarViewComponent, 
+    WorldCupQualifiersComponent, 
+    NationalTeamsU20HubComponent,
+    SaveLoadMenuComponent  // ← ADICIONE ESTA LINHA
+  ],
+})
+
+
+// ════════════════════════════════════════════════════════════════════════
+// DONE! Agora vá para app.component.html
+// ════════════════════════════════════════════════════════════════════════

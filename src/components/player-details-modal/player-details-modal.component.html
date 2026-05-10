@@ -1,0 +1,718 @@
+<div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in"
+  (click)="onClose()">
+  <div
+    class="w-full max-w-5xl bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 max-h-[90vh] flex flex-col overflow-hidden"
+    (click)="$event.stopPropagation()">
+    <header class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900/50">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <i class="fas fa-user-circle text-indigo-500"></i> Perfil do Jogador
+      </h2>
+      <button (click)="onClose()"
+        class="text-gray-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </header>
+
+    <main class="flex-grow overflow-y-auto custom-scrollbar bg-gray-900">
+      <!-- Player Info Header -->
+      <div class="p-6 bg-gradient-to-r from-gray-800 to-gray-900 flex items-center space-x-6 border-b border-gray-700">
+        @let ovrColor = playerData().player.overall | overallColor;
+        <div
+          class="w-24 h-24 rounded-full flex-shrink-0 flex flex-col items-center justify-center ring-4 ring-gray-700 shadow-xl relative overflow-hidden"
+          [class]="ovrColor.bg + ' ' + ovrColor.text">
+          <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+          <span class="text-4xl font-black leading-none drop-shadow-md">{{ playerData().player.overall }}</span>
+          <span class="text-[10px] font-bold tracking-widest uppercase opacity-80">OVR</span>
+        </div>
+        <div class="flex-grow">
+          <h3 class="text-3xl font-black text-white tracking-tight mb-1">{{ playerData().player.name }}</h3>
+          <div class="flex items-center gap-2 text-indigo-300 font-semibold mb-2">
+            <i class="fas fa-shield-alt"></i>
+            <span>{{ playerData().team.teamName }}</span>
+          </div>
+          <div
+            class="flex items-center space-x-4 text-sm text-gray-400 bg-gray-800/50 inline-flex px-3 py-1.5 rounded-lg border border-white/5">
+            <span class="flex items-center gap-1.5"><i class="fas fa-birthday-cake text-gray-500"></i> {{
+              playerData().player.age }} anos</span>
+            <span class="w-px h-4 bg-gray-600"></span>
+            @if (playerData().player.contractYears > 0) {
+            <span class="flex items-center gap-1.5"><i class="fas fa-file-contract text-gray-500"></i> {{
+              playerData().player.contractYears }} ano(s)</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-700 sticky top-0 bg-gray-800/95 backdrop-blur z-20 shadow-md">
+        <button (click)="activeTab.set('overview')"
+          [class]="'flex-1 p-4 text-sm font-bold uppercase tracking-wider text-center transition-all border-b-2 ' + (activeTab() === 'overview' ? 'border-indigo-500 text-white bg-indigo-500/10' : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5')">
+          Visão Geral
+        </button>
+        <button (click)="activeTab.set('details')"
+          [class]="'flex-1 p-4 text-sm font-bold uppercase tracking-wider text-center transition-all border-b-2 ' + (activeTab() === 'details' ? 'border-indigo-500 text-white bg-indigo-500/10' : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5')">
+          Detalhes
+        </button>
+        <button (click)="activeTab.set('history')"
+          [class]="'flex-1 p-4 text-sm font-bold uppercase tracking-wider text-center transition-all border-b-2 ' + (activeTab() === 'history' ? 'border-indigo-500 text-white bg-indigo-500/10' : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5')">
+          Histórico
+        </button>
+        <button (click)="activeTab.set('overall')"
+          [class]="'flex-1 p-4 text-sm font-bold uppercase tracking-wider text-center transition-all border-b-2 ' + (activeTab() === 'overall' ? 'border-indigo-500 text-white bg-indigo-500/10' : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5')">
+          Evolução
+        </button>
+      </div>
+
+      <div class="p-6 bg-gray-900 min-h-[500px]">
+        @if (activeTab() === 'overview') {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+          <!-- Left Column: Radar and Season Stats -->
+          <div class="space-y-6">
+            <!-- Key Attributes -->
+            <div class="bg-gray-800/50 rounded-2xl p-5 border border-white/5">
+              <h4 class="font-bold text-sm text-gray-400 uppercase tracking-widest mb-4 text-center">Atributos Chave
+              </h4>
+              <div class="flex justify-center">
+                <div #radarChart class="w-[280px] h-[280px]"></div>
+              </div>
+            </div>
+            <!-- Season Stats -->
+            <div class="bg-gray-800/50 rounded-2xl p-5 border border-white/5">
+              <h4 class="font-bold text-sm text-gray-400 uppercase tracking-widest mb-4">Temporada Atual</h4>
+              @let stats = currentSeasonStats();
+              <div class="grid grid-cols-4 gap-4 text-center">
+                <div class="bg-gray-900/50 rounded-xl p-3 border border-white/5">
+                  <p class="text-3xl font-black text-white">{{ stats.matchesPlayed }}</p>
+                  <p class="text-[10px] font-bold text-gray-500 uppercase mt-1">Jogos</p>
+                </div>
+                <div class="bg-gray-900/50 rounded-xl p-3 border border-white/5">
+                  <p class="text-3xl font-black text-emerald-400">{{ stats.goals }}</p>
+                  <p class="text-[10px] font-bold text-gray-500 uppercase mt-1">Gols</p>
+                </div>
+                <div class="bg-gray-900/50 rounded-xl p-3 border border-white/5">
+                  <p class="text-3xl font-black text-blue-400">{{ stats.assists }}</p>
+                  <p class="text-[10px] font-bold text-gray-500 uppercase mt-1">Assist.</p>
+                </div>
+                <div class="bg-gray-900/50 rounded-xl p-3 border border-white/5">
+                  <p class="text-3xl font-black text-yellow-400">{{ stats.motm }}</p>
+                  <p class="text-[10px] font-bold text-gray-500 uppercase mt-1">MVPs</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right Column: Trophy Highlight and Scout Report -->
+          <div class="space-y-6">
+            <!-- Trophy Highlight -->
+            <div class="bg-gradient-to-br from-yellow-900/20 to-gray-900 rounded-2xl p-5 border border-yellow-500/20">
+              <h4 class="font-bold text-sm text-yellow-500/80 uppercase tracking-widest mb-4">Maior Conquista</h4>
+              @if (trophyHighlight(); as highlight) {
+              <div class="flex items-center gap-6">
+                <div
+                  class="w-16 h-16 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                  <i class="fas text-4xl text-yellow-400" [class]="highlight.icon"></i>
+                </div>
+                <div class="flex-grow">
+                  <p class="text-4xl font-black text-white leading-none mb-1">{{ highlight.count }}<span
+                      class="text-lg text-yellow-500 ml-1">x</span></p>
+                  <p class="font-bold text-gray-300 text-lg">{{ highlight.name }}</p>
+                </div>
+              </div>
+              } @else {
+              <div class="text-center py-6 opacity-50">
+                <i class="fas fa-trophy text-4xl text-gray-600 mb-2"></i>
+                <p class="text-sm text-gray-400">Nenhum título expressivo ainda.</p>
+              </div>
+              }
+            </div>
+            <!-- Scout Report Placeholder -->
+            <div class="bg-gray-800/50 rounded-2xl p-5 border border-white/5 h-full relative overflow-hidden">
+              <h4 class="font-bold text-sm text-indigo-400 uppercase tracking-widest mb-3">Relatório do Olheiro</h4>
+              <div class="absolute top-0 right-0 p-4 opacity-10">
+                <i class="fas fa-search text-6xl"></i>
+              </div>
+              <p class="text-sm text-gray-400 italic leading-relaxed relative z-10">
+                <i class="fas fa-quote-left text-gray-600 mr-2 text-xs"></i>
+                Análise de IA em breve... Nossos olheiros estão observando de perto o desempenho deste jogador para
+                fornecer um relatório detalhado sobre seus pontos fortes, fracos e potencial futuro.
+              </p>
+            </div>
+          </div>
+        </div>
+        } @else if (activeTab() === 'details') {
+        <form [formGroup]="playerForm" (ngSubmit)="onSave()" class="space-y-6 animate-fade-in">
+
+          <!-- Seção: Dados Pessoais e Identidade -->
+          <div class="p-5 bg-gray-900/40 border border-white/5 rounded-2xl">
+            <div class="flex items-center gap-3 mb-4 border-b border-white/5 pb-2">
+              <i class="fas fa-id-card text-indigo-400"></i>
+              <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Identidade</h4>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Nome -->
+              <div class="md:col-span-2">
+                <label for="name" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Nome Completo</label>
+                <input type="text" id="name" formControlName="name"
+                  class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-lg font-bold rounded-xl focus:ring-2 focus:ring-indigo-500 block w-full p-3 transition-shadow placeholder-gray-600">
+              </div>
+
+              <!-- Nacionalidade -->
+              <div>
+                <label for="nationalityId"
+                  class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Nacionalidade</label>
+                <div class="relative">
+                  <select id="nationalityId" formControlName="nationalityId"
+                    class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 block w-full p-3 appearance-none cursor-pointer">
+                    <option value="" disabled>Selecione um país</option>
+                    @for(nat of nationalities; track nat.code3) {
+                    <option [value]="nat.code3">{{ nat.name }}</option>
+                    }
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Idade -->
+              <div>
+                <label for="age" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Idade</label>
+                <input type="number" id="age" formControlName="age"
+                  class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-sm font-semibold rounded-xl focus:ring-2 focus:ring-indigo-500 block w-full p-3">
+              </div>
+
+              <!-- Número -->
+              @if (!isNationalTeamContext()) {
+              <div>
+                <label for="number" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Número
+                  (Camisa)</label>
+                <div class="relative">
+                  <span
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-mono text-sm">#</span>
+                  <input type="number" id="number" formControlName="number"
+                    class="bg-gray-800 pl-8 border-0 ring-1 ring-white/10 text-white text-sm font-bold rounded-xl focus:ring-2 focus:ring-indigo-500 block w-full p-3">
+                </div>
+              </div>
+              } @else {
+              <div>
+                <label for="nationalTeamNumber" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Nº
+                  Seleção</label>
+                <input type="number" id="nationalTeamNumber" formControlName="nationalTeamNumber"
+                  class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-sm rounded-xl block w-full p-3">
+              </div>
+              <div>
+                <label for="clubNumber" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Nº Clube</label>
+                <input type="number" id="clubNumber" [value]="playerData().player['clubNumber']"
+                  class="bg-gray-900 border-0 ring-1 ring-white/5 text-gray-500 rounded-xl block w-full p-3 cursor-not-allowed"
+                  disabled>
+              </div>
+              }
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Seção: Mercado e Contrato -->
+            <div class="p-5 bg-gray-900/40 border border-white/5 rounded-2xl flex flex-col h-full">
+              <div class="flex items-center gap-3 mb-4 border-b border-white/5 pb-2">
+                <i class="fas fa-file-signature text-emerald-400"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Contrato</h4>
+              </div>
+
+              <div class="space-y-4 flex-1">
+                <!-- Valor -->
+                <div>
+                  <label for="marketValue" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Valor de
+                    Mercado</label>
+                  <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <span class="text-emerald-500 font-bold text-lg">€</span>
+                    </div>
+                    <input type="number" id="marketValue" formControlName="marketValue"
+                      class="bg-gray-800 pl-8 border-0 ring-1 ring-white/10 text-white text-lg font-mono font-bold rounded-xl focus:ring-2 focus:ring-emerald-500 block w-full p-3 group-hover:bg-gray-800/80 transition-colors"
+                      step="0.1">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span
+                        class="text-xs font-bold text-gray-500 uppercase bg-gray-700/50 px-2 py-1 rounded">Milhões</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Anos -->
+                <div>
+                  <label for="contractYears" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Duração
+                    (Anos)</label>
+                  <input type="number" id="contractYears" formControlName="contractYears"
+                    class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-sm font-semibold rounded-xl focus:ring-2 focus:ring-emerald-500 block w-full p-3">
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção: Técnica -->
+            <div class="p-5 bg-gray-900/40 border border-white/5 rounded-2xl flex flex-col h-full">
+              <div class="flex items-center gap-3 mb-4 border-b border-white/5 pb-2">
+                <i class="fas fa-chart-line text-blue-400"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Técnica</h4>
+              </div>
+
+              <div class="space-y-4 flex-1">
+                <!-- Overall -->
+                <div>
+                  <label for="overall" class="block mb-1.5 text-xs font-bold text-gray-400 uppercase">Overall
+                    (Nível)</label>
+                  <div class="relative">
+                    <input type="number" id="overall" formControlName="overall"
+                      class="bg-gray-800 border-0 ring-1 ring-white/10 text-white text-2xl font-black text-center rounded-xl focus:ring-2 focus:ring-blue-500 block w-full p-3 tracking-widest">
+                    <div class="absolute inset-y-0 right-3 flex items-center text-gray-600">
+                      <i class="fas fa-star text-xs"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Goleiro Toggle (Visualmente melhorado) -->
+                <div
+                  class="bg-gray-800/50 rounded-xl p-3 flex items-center justify-between border border-white/5 cursor-pointer hover:bg-gray-800 transition-colors"
+                  (click)="playerForm.get('isGoalkeeper')?.setValue(!playerForm.get('isGoalkeeper')?.value)">
+                  <div class="flex items-center gap-3">
+                    <div
+                      [class]="'w-10 h-10 rounded-lg flex items-center justify-center transition-colors ' + (playerForm.get('isGoalkeeper')?.value ? 'bg-orange-500/20 text-orange-400' : 'bg-gray-700/50 text-gray-500')">
+                      <i class="fas fa-mitten"></i>
+                    </div>
+                    <div>
+                      <span class="block text-sm font-bold text-gray-200">Goleiro</span>
+                      <span class="block text-xs text-gray-500">{{ playerForm.get('isGoalkeeper')?.value ? 'Sim, usa as
+                        mãos.' : 'Não, jogador de linha.' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="relative w-12 h-6 rounded-full transition-colors duration-300"
+                    [class]="playerForm.get('isGoalkeeper')?.value ? 'bg-orange-500' : 'bg-gray-700'">
+                    <div
+                      class="absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-md"
+                      [class.translate-x-6]="playerForm.get('isGoalkeeper')?.value"></div>
+                  </div>
+                  <!-- Hidden Checkbox for form binding -->
+                  <input type="checkbox" id="isGoalkeeper" formControlName="isGoalkeeper" class="hidden" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Actions -->
+        @if (playerData().player.contractYears > 0 && playerData().team.countryId !== 'AAA' &&
+        playerData().team.countryId !== 'BBB') {
+        <div class="mt-6 pt-6 border-t border-white/10 animate-fade-in">
+          <h4 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Gerenciamento de Carreira</h4>
+          <div class="space-y-4">
+            @if (!isRenewing()) {
+            @switch (confirmingAction()) {
+            @case ('terminate') {
+            <!-- Terminate Confirmation -->
+            <div class="bg-red-900/20 border border-red-500/30 p-4 rounded-xl space-y-4 text-center animate-pulse-once">
+              <div class="flex flex-col items-center gap-2">
+                <i class="fas fa-exclamation-triangle text-3xl text-red-500 mb-2"></i>
+                <p class="font-bold text-red-100 text-lg">Confirmar Rescisão?</p>
+                <p class="text-red-300/70 text-sm">Esta ação não pode ser desfeita. O jogador ficará livre no mercado.
+                </p>
+              </div>
+              <div class="flex gap-3 justify-center">
+                <button (click)="cancelAction()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm border border-white/5">
+                  Cancelar
+                </button>
+                <button (click)="confirmAction()"
+                  class="bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm shadow-lg shadow-red-900/50">
+                  Sim, Rescindir
+                </button>
+              </div>
+            </div>
+            }
+            @case ('retire') {
+            <!-- Retire Confirmation -->
+            <div
+              class="bg-orange-900/20 border border-orange-500/30 p-4 rounded-xl space-y-4 text-center animate-pulse-once">
+              <div class="flex flex-col items-center gap-2">
+                <i class="fas fa-user-clock text-3xl text-orange-500 mb-2"></i>
+                <p class="font-bold text-orange-100 text-lg">Confirmar Aposentadoria?</p>
+                <p class="text-orange-300/70 text-sm">O jogador deixará o futebol profissional permanentemente.</p>
+              </div>
+              <div class="flex gap-3 justify-center">
+                <button (click)="cancelAction()"
+                  class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm border border-white/5">
+                  Cancelar
+                </button>
+                <button (click)="confirmAction()"
+                  class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm shadow-lg shadow-orange-900/50">
+                  Sim, Aposentar
+                </button>
+              </div>
+            </div>
+            }
+            @default {
+            <!-- Default Actions Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Renovar -->
+              @if (playerData().player.contractYears <= 1) { <button (click)="onStartRenewal()"
+                class="group relative overflow-hidden bg-gradient-to-br from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg hover:shadow-green-900/30 flex flex-col items-center justify-center gap-1 border border-green-500/30">
+                <i class="fas fa-file-contract text-2xl mb-1 opacity-80 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm">Renovar Contrato</span>
+                </button>
+                }
+
+                <!-- Rescindir -->
+                <button (click)="onTerminate()"
+                  class="group relative overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg hover:shadow-black/30 flex flex-col items-center justify-center gap-1 border border-white/5">
+                  <i
+                    class="fas fa-door-open text-2xl text-red-400 mb-1 opacity-80 group-hover:text-red-300 transition-colors"></i>
+                  <span class="text-sm">Rescindir Contrato</span>
+                </button>
+
+                <!-- Aposentar -->
+                @if (playerData().player.age >= 35) {
+                <button (click)="onRetire()"
+                  class="group relative overflow-hidden bg-gradient-to-br from-red-900 to-red-950 hover:from-red-800 hover:to-red-900 text-white font-bold py-4 px-4 rounded-xl transition-all shadow-lg hover:shadow-red-900/20 flex flex-col items-center justify-center gap-1 border border-red-500/20">
+                  <i class="fas fa-walking text-2xl text-orange-200 mb-1 opacity-80"></i>
+                  <span class="text-sm">Aposentar</span>
+                </button>
+                }
+            </div>
+            }
+            }
+            } @else {
+            <!-- Renewal Form -->
+            <div [formGroup]="renewalForm"
+              class="bg-gray-800/80 border border-green-500/30 p-6 rounded-2xl space-y-4 shadow-xl shadow-black/50 animate-fade-in relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+
+              <h5 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fas fa-handshake text-green-400"></i> Negociação de Renovação
+              </h5>
+
+              <div>
+                <label for="newContractLength" class="block text-sm font-medium text-gray-300 mb-2">Nova Duração
+                  Sugerida</label>
+                <select formControlName="newContractLength" id="newContractLength"
+                  class="bg-gray-900 border border-gray-600 text-white text-lg rounded-xl block w-full p-3 focus:ring-green-500 focus:border-green-500">
+                  <option [value]="1">1 Ano (Curto Prazo)</option>
+                  <option [value]="2">2 Anos</option>
+                  <option [value]="3">3 Anos (Padrão)</option>
+                  <option [value]="4">4 Anos</option>
+                  <option [value]="5">5 Anos (Longo Prazo)</option>
+                </select>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button (click)="onCancelRenewal()"
+                  class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-xl transition-colors">
+                  Cancelar
+                </button>
+                <button (click)="onConfirmRenewal()"
+                  class="flex-[2] bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-green-900/30">
+                  Assinar Novo Contrato
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+        } @else if (activeTab() === 'history') {
+        @if (playerHistory(); as history) {
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-fade-in">
+          <!-- Left Column (Stats & Clubs) -->
+          <div class="lg:col-span-3 space-y-6">
+
+            <!-- Career Stats Cards -->
+            <div class="bg-gray-900/40 p-5 rounded-2xl border border-white/5">
+              <div class="flex items-center gap-2 mb-4">
+                <i class="fas fa-chart-bar text-indigo-400"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Resumo da Carreira</h4>
+              </div>
+
+              @let seasonStats = currentSeasonStats();
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <!-- Helper template for stat card -->
+                <ng-template #statCard let-label="label" let-value="value" let-icon="icon" let-color="color">
+                  <div
+                    class="bg-gray-800/60 p-3 rounded-xl border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group hover:border-white/10 transition-all">
+                    <div
+                      [class]="'absolute -right-2 -bottom-2 text-5xl opacity-5 group-hover:opacity-10 transition-opacity text-' + color + '-500'">
+                      <i [class]="'fas ' + icon"></i>
+                    </div>
+                    <p class="text-3xl font-black text-white z-10">{{ value }}</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide z-10">{{ label }}</p>
+                  </div>
+                </ng-template>
+
+                <ng-container
+                  *ngTemplateOutlet="statCard; context: { label: 'Jogos', value: history.totalCareerStats.matchesPlayed, icon: 'fa-tshirt', color: 'gray' }"></ng-container>
+                <ng-container
+                  *ngTemplateOutlet="statCard; context: { label: 'Gols', value: history.totalCareerStats.goals, icon: 'fa-futbol', color: 'emerald' }"></ng-container>
+                <ng-container
+                  *ngTemplateOutlet="statCard; context: { label: 'Assist.', value: history.totalCareerStats.assists, icon: 'fa-hands-helping', color: 'sky' }"></ng-container>
+                <ng-container
+                  *ngTemplateOutlet="statCard; context: { label: 'MVPs', value: history.totalCareerStats.motm, icon: 'fa-star', color: 'yellow' }"></ng-container>
+              </div>
+
+              <!-- Detailed Stats Table (Modern) -->
+              <div class="mt-6">
+                <h5 class="font-semibold text-gray-400 mb-3 text-xs uppercase tracking-wide px-1">Detalhamento por
+                  Competição</h5>
+                <div class="overflow-x-auto max-h-60 rounded-xl border border-white/5 custom-scrollbar">
+                  <table class="w-full text-xs text-left text-gray-300">
+                    <thead class="text-gray-400 font-bold uppercase sticky top-0 bg-gray-950 z-10 shadow-sm">
+                      <tr>
+                        <th scope="col" class="p-3 pl-4">Competição</th>
+                        <th scope="col" class="p-3 text-center w-12" title="Jogos">J</th>
+                        <th scope="col" class="p-3 text-center w-12" title="Gols">G</th>
+                        <th scope="col" class="p-3 text-center w-12" title="Assistências">A</th>
+                        <th scope="col" class="p-3 text-center w-12" title="Melhor da Partida">MVP</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 bg-gray-900/30">
+                      @if(playerData().player.worldCupStats?.matchesPlayed > 0) {
+                      <tr class="hover:bg-yellow-900/20 bg-yellow-500/5 transition-colors group">
+                        <td class="p-3 pl-4 font-bold text-yellow-100 whitespace-nowrap flex items-center gap-2">
+                          <i class="fas fa-trophy text-yellow-500 group-hover:scale-110 transition-transform"></i>Copa
+                          do Mundo
+                        </td>
+                        <td class="p-3 text-center font-mono">{{ playerData().player.worldCupStats.matchesPlayed }}</td>
+                        <td class="p-3 text-center font-mono font-bold text-white">{{
+                          playerData().player.worldCupStats.goals }}</td>
+                        <td class="p-3 text-center font-mono">{{ playerData().player.worldCupStats.assists }}</td>
+                        <td class="p-3 text-center font-mono">{{ playerData().player.worldCupStats.motm }}</td>
+                      </tr>
+                      }
+                      @if(aggregatedQualifierStats().matchesPlayed > 0) {
+                      <tr class="hover:bg-blue-900/20 bg-blue-500/5 transition-colors group">
+                        <td class="p-3 pl-4 font-medium text-blue-100 whitespace-nowrap flex items-center gap-2">
+                          <i
+                            class="fas fa-globe-americas text-blue-400 group-hover:rotate-12 transition-transform"></i>Eliminatórias
+                        </td>
+                        <td class="p-3 text-center font-mono">{{ aggregatedQualifierStats().matchesPlayed }}</td>
+                        <td class="p-3 text-center font-mono font-bold text-white">{{ aggregatedQualifierStats().goals
+                          }}</td>
+                        <td class="p-3 text-center font-mono">{{ aggregatedQualifierStats().assists }}</td>
+                        <td class="p-3 text-center font-mono">{{ aggregatedQualifierStats().motm }}</td>
+                      </tr>
+                      }
+                      @for (stat of careerStatsAsArray(history.careerStats); track stat.country) {
+                      <tr class="hover:bg-white/5 transition-colors">
+                        <td class="p-3 pl-4 font-medium whitespace-nowrap text-gray-300">{{ stat.country }}</td>
+                        <td class="p-3 text-center font-mono text-gray-400">{{ stat.data.matchesPlayed }}</td>
+                        <td class="p-3 text-center font-mono font-bold text-gray-200">{{ stat.data.goals }}</td>
+                        <td class="p-3 text-center font-mono text-gray-400">{{ stat.data.assists }}</td>
+                        <td class="p-3 text-center font-mono text-gray-400">{{ stat.data.motm }}</td>
+                      </tr>
+                      } @empty {
+                      @if(playerData().player.worldCupStats?.matchesPlayed === 0 &&
+                      aggregatedQualifierStats().matchesPlayed === 0) {
+                      <tr>
+                        <td colspan="5" class="p-6 text-center text-gray-500 italic">Início de carreira. Nenhuma
+                          estatística registrada.</td>
+                      </tr>
+                      }
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Club History (Modern Timeline) -->
+            <div class="bg-gray-900/40 p-5 rounded-2xl border border-white/5">
+              <div class="flex items-center gap-2 mb-6">
+                <i class="fas fa-suitcase text-purple-400"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Trajetória de Clubes</h4>
+              </div>
+
+              @if(clubHistory().length > 0) {
+              <div class="relative ml-3 space-y-0">
+                <!-- Linha Vertical Contínua -->
+                <div
+                  class="absolute left-[15px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-purple-500 via-gray-700 to-gray-800">
+                </div>
+
+                @for (club of clubHistory(); track $index; let last = $last) {
+                <div class="relative pl-10 py-3 group">
+                  <!-- Dot -->
+                  <div
+                    class="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-900 border-2 border-purple-500 flex items-center justify-center z-10 shadow-lg group-hover:scale-110 group-hover:border-purple-300 transition-all">
+                    <span class="text-[10px] font-bold text-purple-200">{{ club.season }}</span>
+                  </div>
+
+                  <!-- Card -->
+                  <div
+                    class="bg-gray-800/40 border border-white/5 p-3 rounded-xl flex items-center justify-between hover:bg-white/5 hover:border-purple-500/30 transition-all cursor-default">
+                    <span class="font-bold text-gray-200 text-sm">{{ club.teamName }}</span>
+                    <!-- Poderíamos adicionar mais infos aqui se tivéssemos, como 'Transferência' ou 'Empréstimo' -->
+                  </div>
+                </div>
+                }
+              </div>
+              } @else {
+              <div
+                class="flex flex-col items-center justify-center h-32 text-gray-500 bg-gray-800/30 rounded-xl border border-dashed border-gray-700">
+                <i class="fas fa-history mb-2 opacity-50"></i>
+                <p class="text-xs">Nenhum histórico de transferências.</p>
+              </div>
+              }
+            </div>
+          </div>
+
+          <!-- Right Column (Trophies & Awards) -->
+          <div class="lg:col-span-2 space-y-6">
+
+            <!-- Trophy Case -->
+            <div class="bg-gray-900/40 p-5 rounded-2xl border border-white/5 flex flex-col h-full max-h-[600px]">
+              <div class="flex items-center gap-2 mb-4 shrink-0">
+                <i class="fas fa-trophy text-yellow-500"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Sala de Troféus</h4>
+              </div>
+
+              @if (detailedTrophies().length > 0) {
+              <div class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                @for(trophy of detailedTrophies(); track trophy.name) {
+                <details
+                  class="group bg-gray-800/40 border border-white/5 rounded-xl overflow-hidden [&[open]]:bg-gray-800/80 [&[open]]:border-yellow-500/30 transition-colors">
+                  <summary class="p-3 cursor-pointer flex items-center gap-4 list-none">
+                    <div
+                      class="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform border border-white/5">
+                      <i class="fas text-lg text-yellow-400 drop-shadow-sm" [class]="trophy.icon"></i>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                      <p class="font-bold text-gray-200 text-sm truncate">{{ trophy.name }}</p>
+                      <p class="text-[10px] text-gray-500 font-medium">Clique para ver temporadas</p>
+                    </div>
+                    <div class="flex flex-col items-end">
+                      <span class="font-black text-lg text-yellow-500 leading-none">{{ trophy.count }}</span>
+                      <span class="text-[9px] uppercase font-bold text-yellow-600/70">Títulos</span>
+                    </div>
+                  </summary>
+
+                  <!-- Dropdown Content -->
+                  <div class="px-3 pb-3 pt-0 animate-fade-in">
+                    <div class="h-px w-full bg-white/5 mb-3"></div>
+                    <ul class="space-y-2">
+                      @for(win of trophy.wins; track $index) {
+                      <li
+                        class="flex justify-between items-center text-xs bg-gray-900/30 p-2 rounded-lg border border-white/5">
+                        <span class="text-gray-400 font-mono">Temp {{ win.season }}</span>
+                        <span class="font-bold text-gray-300">{{ win.teamName }}</span>
+                      </li>
+                      }
+                    </ul>
+                  </div>
+                </details>
+                }
+              </div>
+              } @else {
+              <div class="flex-1 flex flex-col items-center justify-center text-gray-600 space-y-3 opacity-60">
+                <i class="fas fa-trophy text-4xl opacity-20"></i>
+                <p class="text-xs text-center px-6">A estante está vazia. Grandes conquistas aguardam!</p>
+              </div>
+              }
+            </div>
+
+            <!-- Individual Awards -->
+            <div class="bg-gray-900/40 p-5 rounded-2xl border border-white/5">
+              <div class="flex items-center gap-2 mb-4">
+                <i class="fas fa-medal text-orange-400"></i>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Honrarias Individuais</h4>
+              </div>
+
+              @if (individualAwards().length > 0) {
+              <ul class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                @for (award of individualAwards(); track $index) {
+                <li
+                  class="flex items-center gap-3 bg-gradient-to-r from-gray-800/60 to-gray-800/30 p-2.5 rounded-xl border border-white/5 hover:border-orange-400/30 transition-colors group">
+                  <div
+                    class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:scale-110 transition-transform">
+                    <i class="fas text-orange-400" [class]="award.icon"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-gray-200 text-xs leading-tight">{{ award.award }}</p>
+                    <p class="text-[10px] text-gray-400 truncate">{{ award.competition }}</p>
+                  </div>
+                  <div class="ml-auto text-right">
+                    <span class="block text-[10px] font-mono text-gray-500 bg-gray-900 px-1.5 py-0.5 rounded">T{{
+                      award.season }}</span>
+                  </div>
+                </li>
+                }
+              </ul>
+              } @else {
+              <div class="flex flex-col items-center justify-center py-8 text-gray-600 opacity-60">
+                <p class="text-xs italic">Nenhum prêmio individual ainda.</p>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+        } @else if (activeTab() === 'overall') {
+        <div class="bg-gray-900/50 rounded-lg p-4 animate-fade-in">
+          <h4 class="font-bold text-lg text-indigo-300 mb-3">Evolução de Overall</h4>
+          <app-overall-chart [history]="chartData()"></app-overall-chart>
+        </div>
+        }
+      </div>
+    </main>
+
+    <footer class="p-4 border-t border-gray-700 flex justify-end gap-3 bg-gray-900">
+      <button (click)="onClose()"
+        class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors border border-white/5">
+        Fechar
+      </button>
+      @if (activeTab() === 'details' && playerData().team.countryId !== 'BBB') {
+      <button (click)="onSave()" [disabled]="playerForm.invalid"
+        class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg shadow-indigo-900/30">
+        Salvar Alterações
+      </button>
+      }
+    </footer>
+  </div>
+</div>
+<style>
+  details>summary {
+    list-style: none;
+  }
+
+  details>summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+</style>

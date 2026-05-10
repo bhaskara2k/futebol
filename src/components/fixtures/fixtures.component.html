@@ -1,0 +1,60 @@
+<div class="p-4 space-y-4 h-full">
+  <h3 class="text-lg font-bold text-white tracking-wide text-center">Jogos da Rodada {{ round() }}</h3>
+
+  @if (fixtures().length > 0) {
+  <div class="space-y-2">
+    <h4 class="text-md font-semibold text-indigo-300 mt-3 border-b border-gray-700 pb-1">{{ divisionName() }}</h4>
+    @for (match of fixtures(); track match.id) {
+    <div class="bg-gray-900/50 p-3 rounded-lg flex items-center justify-between text-sm group">
+      <!-- Time da Casa -->
+      <div class="w-2/5 flex items-center justify-end gap-3 text-right">
+        <span class="font-black text-white text-base tracking-tighter">{{ universeService.getTeamAcronym(match.homeTeam.teamName) }}</span>
+        <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-lg border border-white/5 p-1">
+          <img [src]="universeService.getTeamCrest(match.homeTeam)" 
+            class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
+            (error)="tryPngFallback($event)">
+        </div>
+      </div>
+
+      <!-- Placar / Botões -->
+      <div class="flex-shrink-0 mx-2 text-center w-28">
+        @if (match.played) {
+        <button (click)="openMatchDetails(match)"
+          class="w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition-all px-4 py-1.5 rounded-lg font-black text-lg tabular-nums shadow-lg">
+          {{ match.homeScore }} &ndash; {{ match.awayScore }}
+        </button>
+        } @else {
+        <div class="flex gap-1.5">
+          <button (click)="onSimulateMatch(match.id)"
+            class="flex-grow bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all shadow-lg active:scale-95">
+            Simular
+          </button>
+          <button (click)="onSetManualResult(match)"
+            class="bg-white/5 hover:bg-white/10 text-gray-400 px-2 py-2 text-xs rounded-lg transition-all border border-white/5"
+            title="Resultado Manual">
+            <i class="fas fa-edit"></i>
+          </button>
+        </div>
+        }
+      </div>
+
+      <!-- Time de Fora -->
+      <div class="w-2/5 flex items-center justify-start gap-3 text-left">
+        <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-lg border border-white/5 p-1">
+          <img [src]="universeService.getTeamCrest(match.awayTeam)" 
+            class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
+            (error)="tryPngFallback($event)">
+        </div>
+        <span class="font-black text-white text-base tracking-tighter">{{ universeService.getTeamAcronym(match.awayTeam.teamName) }}</span>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="flex flex-col items-center justify-center h-full text-center text-gray-400 p-8">
+    <i class="fas fa-flag-checkered text-4xl mb-4"></i>
+    <p class="font-semibold">Temporada concluída!</p>
+    <p class="text-sm">Todos os jogos foram disputados.</p>
+  </div>
+  }
+</div>

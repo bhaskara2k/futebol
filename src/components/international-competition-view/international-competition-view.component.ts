@@ -42,6 +42,12 @@ export class InternationalCompetitionViewComponent {
     return isWorldCupTier ? 'worldCup' : 'international';
   });
 
+  freshLeagueTeams = computed(() => {
+    const compTeams = this.competition().teams;
+    const allTeams = this.universeService.teams();
+    return compTeams.map(ct => allTeams.find(t => t.id === ct.id) || ct);
+  });
+
   constructor() {
     effect(() => {
       const status = this.competition().status;

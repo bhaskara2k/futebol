@@ -243,37 +243,75 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         @for(comp of allCompetitionsRankings(); track comp.id) {
-          <div class="bg-[#0a0a0c] border border-white/5 rounded-[3rem] overflow-hidden flex flex-col group hover:border-yellow-500/40 transition-all duration-700 shadow-2xl">
-            <header class="p-8 pb-4 flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-yellow-500/10 transition-colors">
-                  @if (comp.countryId) {
-                    <img [src]="universeService.getFlagUrl(comp.countryId)" class="w-6 h-4 object-cover rounded shadow-sm">
-                  } @else {
-                    <i class="fas fa-globe text-indigo-400"></i>
-                  }
+          <div class="bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] overflow-hidden flex flex-col group hover:border-yellow-500/40 transition-all duration-700 shadow-2xl">
+            <header class="p-8 pb-4">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-yellow-500/10 transition-colors shadow-inner">
+                    @if (comp.countryId) {
+                      <img [src]="universeService.getFlagUrl(comp.countryId)" class="w-8 h-5 object-cover rounded shadow-sm">
+                    } @else {
+                      <i class="fas" [class]="comp.type === 'world' ? 'fa-globe-americas text-amber-500' : 'fa-trophy text-indigo-400'"></i>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="text-xl font-black text-white tracking-tight leading-none mb-2">{{ comp.name }}</h3>
+                    <div class="flex gap-2">
+                      <span class="px-2 py-0.5 rounded bg-white/5 text-[8px] font-black tracking-widest uppercase"
+                            [class.text-yellow-500]="comp.type === 'national_league'"
+                            [class.text-indigo-400]="comp.type === 'national_cup'"
+                            [class.text-amber-500]="comp.type === 'world'">
+                        {{ comp.type === 'national_league' ? 'Liga Nacional' : comp.type === 'national_cup' ? 'Copa Nacional' : 'Competição Global' }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 class="text-lg font-black text-white tracking-tight truncate max-w-[150px]">{{ comp.name }}</h3>
+                <i class="fas fa-crown text-gray-800 group-hover:text-yellow-500 transition-all duration-500 text-xl"></i>
               </div>
-              <i class="fas fa-crown text-gray-800 group-hover:text-yellow-500 transition-all duration-500"></i>
             </header>
 
             <div class="px-6 pb-8 flex-1 space-y-3">
-              @for(record of comp.records; track record.team.id; let i = $index) {
-                <div class="flex items-center justify-between p-4 rounded-[1.5rem] hover:bg-white/5 transition-all group/item">
-                  <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-black/40 rounded-xl border border-white/5 p-2 flex items-center justify-center">
-                      <img [src]="universeService.getTeamCrest(record.team)" class="w-full h-full object-contain">
+              @for(record of comp.records.slice(0, 5); track record.team.id; let i = $index) {
+                <div class="flex items-center justify-between p-4 rounded-[1.8rem] hover:bg-white/[0.07] transition-all duration-500 group/item border border-white/[0.03] hover:border-white/10 hover:shadow-2xl hover:translate-x-1">
+                  <div class="flex items-center gap-5 min-w-0">
+                    <!-- Crest Container with Special Effects -->
+                    <div class="relative flex-shrink-0">
+                      @if (i === 0) {
+                        <div class="absolute -inset-2 bg-yellow-500/20 rounded-full blur-md animate-pulse"></div>
+                      }
+                      <div class="w-12 h-12 bg-gradient-to-br from-white/10 to-transparent rounded-2xl border border-white/10 p-2 flex items-center justify-center relative z-10 shadow-inner group-hover/item:rotate-6 transition-transform duration-500">
+                        <img [src]="universeService.getTeamCrest(record.team)" 
+                             class="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] group-hover/item:scale-110 transition-transform duration-500">
+                        
+                        <!-- Mini Trophy Badge for Top 1 -->
+                        @if (i === 0) {
+                          <div class="absolute -top-2 -right-2 bg-yellow-500 text-yellow-950 w-5 h-5 rounded-full flex items-center justify-center shadow-lg border border-yellow-400">
+                            <i class="fas fa-trophy text-[8px]"></i>
+                          </div>
+                        }
+                      </div>
                     </div>
-                    <div class="min-w-0">
-                      <p class="text-xs font-black text-white truncate">{{ record.team.teamName }}</p>
-                      <p class="text-[8px] font-black text-gray-500 uppercase tracking-widest">{{ i === 0 ? 'Maior Vencedor' : 'Conquistador' }}</p>
+
+                    <div class="flex-1">
+                      <p class="text-base font-black text-white group-hover/item:text-yellow-500 transition-colors tracking-tight leading-tight">
+                        {{ record.team.teamName }}
+                      </p>
                     </div>
                   </div>
-                  <div class="text-lg font-black text-yellow-500 tabular-nums">{{ record.count }}x</div>
+
+                  <div class="flex items-center gap-4 flex-shrink-0">
+                    <div class="px-4 py-2 bg-black/40 rounded-2xl border border-white/5 group-hover/item:border-yellow-500/30 transition-colors shadow-inner">
+                      <div class="flex items-baseline gap-1">
+                        <span class="text-2xl font-black text-white tabular-nums group-hover/item:text-yellow-500 transition-colors">{{ record.count }}</span>
+                        <span class="text-[10px] font-bold text-gray-600 uppercase">Títulos</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               }
             </div>
+            
+            <div class="h-1.5 w-full bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
           </div>
         }
       </div>

@@ -123,56 +123,57 @@ export class TeamsViewComponent {
   });
 
   allCompetitionsRankings = computed(() => {
-    const rankings: { id: string, name: string, countryId?: string, type: 'national' | 'international' | 'world', records: { team: { id: string, teamName: string, logoUrl?: string }, count: number }[] }[] = [];
+    const rankings: { id: string, name: string, countryId?: string, type: 'national_league' | 'national_cup' | 'international' | 'world', records: { team: { id: string, teamName: string, logoUrl?: string }, count: number }[] }[] = [];
 
-    // 1. National Leagues
+    // Helper to enrich records with full team data
+    const enrich = (records: any[]) => records.map(r => {
+      if (!r.team.countryId || !r.team.logoUrl) {
+        const fullTeam = this.universeService.teams().find(t => t.id === r.team.id);
+        if (fullTeam) {
+          return { ...r, team: { ...r.team, countryId: fullTeam.countryId, logoUrl: fullTeam.logoUrl } };
+        }
+      }
+      return r;
+    }).sort((a, b) => b.count - a.count);
+
+    // 1. National Competitions (Leagues & Cups)
     this.universeService.leagues().forEach(league => {
+      // Leagues
       if (league.rankings?.division1 && league.rankings.division1.length > 0) {
-        const enrichedRecords = league.rankings.division1.map(r => {
-          if (!r.team.countryId || !r.team.logoUrl) {
-            const fullTeam = this.universeService.teams().find(t => t.id === r.team.id);
-            if (fullTeam) {
-              return { ...r, team: { ...r.team, countryId: fullTeam.countryId, logoUrl: fullTeam.logoUrl } };
-            }
-          }
-          return r;
-        });
-
         rankings.push({
-          id: `national_${league.countryId}`,
-          name: `${league.countryName} - Liga`,
+          id: `league_${league.countryId}`,
+          name: league.countryName,
           countryId: league.countryId,
-          type: 'national',
-          records: enrichedRecords.slice(0, 5) // Top 5
+          type: 'national_league',
+          records: enrich(league.rankings.division1)
+        });
+      }
+      // Cups
+      if (league.rankings?.cup && league.rankings.cup.length > 0) {
+        rankings.push({
+          id: `cup_${league.countryId}`,
+          name: `Copa de ${league.countryName}`,
+          countryId: league.countryId,
+          type: 'national_cup',
+          records: enrich(league.rankings.cup)
         });
       }
     });
 
-    // 2. International Comps
+    // 2. International Competitions
     this.universeService.internationalCompetitions().forEach(comp => {
       if (comp.rankings && comp.rankings.length > 0) {
-        const enrichedRecords = comp.rankings.map(r => {
-          if (!r.team.countryId || !r.team.logoUrl) {
-            const fullTeam = this.universeService.teams().find(t => t.id === r.team.id);
-            if (fullTeam) {
-              return { ...r, team: { ...r.team, countryId: fullTeam.countryId, logoUrl: fullTeam.logoUrl } };
-            }
-          }
-          return r;
-        });
-
         rankings.push({
           id: comp.id,
           name: comp.name,
           type: comp.id === 'WORLD_CWC' ? 'world' : 'international',
-          records: enrichedRecords.slice(0, 5) // Top 5
+          records: enrich(comp.rankings)
         });
       }
     });
 
     return rankings.sort((a, b) => {
-      // Prioritize World > International > National
-      const typeOrder = { world: 0, international: 1, national: 2 };
+      const typeOrder = { world: 0, international: 1, national_league: 2, national_cup: 3 };
       if (typeOrder[a.type] !== typeOrder[b.type]) return typeOrder[a.type] - typeOrder[b.type];
       return a.name.localeCompare(b.name);
     });

@@ -33,106 +33,113 @@ export class SeasonService {
         return;
       }
 
+      const getSwapCount = (idx: number) => {
+        if (idx < 0 || idx >= league.divisions.length) return 0;
+        const div = league.divisions[idx];
+        if (div.relegationSlots !== undefined) return div.relegationSlots;
+        return Math.min(3, Math.floor(div.teams.length / 4)) || 1;
+      };
+
       let finalTeamListForNextSeason: Team[] = [];
 
-      if (league.countryId === 'BRA' && divCount === 8) {
-        const d1s = [...getTeamsFromMap(league.divisions[0].teams)].sort(this.universeService.sortTeams);
-        const d2s = [...getTeamsFromMap(league.divisions[1].teams)].sort(this.universeService.sortTeams);
-        const d3s = [...getTeamsFromMap(league.divisions[2].teams)].sort(this.universeService.sortTeams);
-        const d4s = [...getTeamsFromMap(league.divisions[3].teams)].sort(this.universeService.sortTeams);
-        
-        const m1s = [...getTeamsFromMap(league.divisions[4].teams)].sort(this.universeService.sortTeams);
-        const m2s = [...getTeamsFromMap(league.divisions[5].teams)].sort(this.universeService.sortTeams);
-        const m3s = [...getTeamsFromMap(league.divisions[6].teams)].sort(this.universeService.sortTeams);
-        const m4s = [...getTeamsFromMap(league.divisions[7].teams)].sort(this.universeService.sortTeams);
+      if (league.countryId === 'BRA') {
+        const snapshot = league.divisions.map(d => [...getTeamsFromMap(d.teams)].sort(this.universeService.sortTeams));
+        const finalDivisions: Team[][] = [];
 
-        const swapA = league.divisions[0].relegationSlots ?? 4;
-        const swapB = league.divisions[1].relegationSlots ?? 4;
+        console.log(`\n🇧🇷 --- AUDITORIA DE TRANSIÇÃO: BRASIL (Temporada ${this.universeService.season()}) ---`);
+
+        // 1. Processar Séries A, B e C (Symmetrical 4-down/4-up)
+        for (let i = 0; i < 3; i++) {
+          const divName = league.divisions[i].name;
+          const swap = league.divisions[i].relegationSlots ?? 4;
+          
+          const relegated = snapshot[i].slice(-swap);
+          const promoted = snapshot[i+1].slice(0, swap);
+
+          console.log(`[${divName}] Rebaixando: ${relegated.map(t => t.teamName).join(', ')}`);
+          console.log(`[${divName}] Promovendo de baixo: ${promoted.map(t => t.teamName).join(', ')}`);
+
+          const stayers = (i === 0) 
+            ? snapshot[0].slice(0, snapshot[0].length - swap)
+            : snapshot[i].slice(getSwapCount(i-1), snapshot[i].length - swap);
+
+          const arrivalsFromAbove = (i > 0) ? snapshot[i-1].slice(-(league.divisions[i-1].relegationSlots ?? 4)) : [];
+          const arrivalsFromBelow = promoted;
+
+          finalDivisions[i] = [...stayers, ...arrivalsFromAbove, ...arrivalsFromBelow];
+          console.log(`[${divName}] Nova formação: ${finalDivisions[i].length} times.`);
+        }
+
+        // 2. Processar Série D (Acesso da Série E é especial)
         const swapC = league.divisions[2].relegationSlots ?? 4;
         const swapD = league.divisions[3].relegationSlots ?? 4;
-
-        const relegatedFromA = d1s.slice(-swapA);
-        const promotedFromB = d2s.slice(0, swapA);
-        const relegatedFromB = d2s.slice(-swapB);
-        const promotedFromC = d3s.slice(0, swapB);
-        const relegatedFromC = d3s.slice(-swapC);
-        const promotedFromD = d4s.slice(0, swapC);
-        const relegatedFromD = d4s.slice(-swapD);
         
         let promotedFromE: Team[] = [];
-        if (league.leagueCup && league.leagueCup.rounds.length >= 3) {
-          const semiMatches = league.leagueCup.rounds.find(r => r.name.includes('Semifinais'))?.matches || [];
-          semiMatches.forEach(m => {
-            if (m.homeTeam) promotedFromE.push(mostUpToDateTeamsMap.get(m.homeTeam.id)!);
-            if (m.awayTeam) promotedFromE.push(mostUpToDateTeamsMap.get(m.awayTeam.id)!);
-          });
-        }
-
-        if (promotedFromE.length < 4) {
-          promotedFromE = [m1s[0], m2s[0], m3s[0], m4s[0]];
-        }
-
-        const newD1Teams = [...d1s.slice(0, d1s.length - swapA), ...promotedFromB];
-        const newD2Teams = [...d2s.slice(swapA, d2s.length - swapB), ...relegatedFromA, ...promotedFromC];
-        const newD3Teams = [...d3s.slice(swapB, d3s.length - swapC), ...relegatedFromB, ...promotedFromD];
-        const newD4Teams = [...d4s.slice(swapC, d4s.length - swapD), ...relegatedFromC, ...promotedFromE];
-
-        const allRemainingETeams = [
-          ...m1s.filter(t => !promotedFromE.includes(t)),
-          ...m2s.filter(t => !promotedFromE.includes(t)),
-          ...m3s.filter(t => !promotedFromE.includes(t)),
-          ...m4s.filter(t => !promotedFromE.includes(t)),
-          ...relegatedFromD
-        ];
-
-        finalTeamListForNextSeason = [...newD1Teams, ...newD2Teams, ...newD3Teams, ...newD4Teams, ...allRemainingETeams];
-
-      } else if (league.countryId === 'BRA' && divCount === 4) {
-        const d1s = [...getTeamsFromMap(league.divisions[0].teams)].sort(this.universeService.sortTeams);
-        const d2s = [...getTeamsFromMap(league.divisions[1].teams)].sort(this.universeService.sortTeams);
-        const d3s = [...getTeamsFromMap(league.divisions[2].teams)].sort(this.universeService.sortTeams);
-        const swapA = league.divisions[0].relegationSlots ?? 4;
-        const swapB = league.divisions[1].relegationSlots ?? 4;
-
-        const relegatedFromA = d1s.slice(-swapA);
-        const promotedFromB = d2s.slice(0, swapA);
-        const relegatedFromB = d2s.slice(-swapB); 
-        const promotedFromC = d3s.slice(0, swapB);   
-
-        const newD1Teams = [...d1s.slice(0, d1s.length - swapA), ...promotedFromB];
-        const newD2Teams = [...d2s.slice(swapA, d2s.length - swapB), ...relegatedFromA, ...promotedFromC];
-        const newD3Teams = [...d3s.slice(swapB), ...relegatedFromB];
-
-        finalTeamListForNextSeason = [...newD1Teams, ...newD2Teams, ...newD3Teams];
-
-      } else if (divCount > 1) {
-        // Lógica Customizada de Promoção e Rebaixamento por País
-        const divisions = league.divisions.map(d => [...getTeamsFromMap(d.teams)].sort(this.universeService.sortTeams));
-        
-        // Define o número de vagas baseado no país (respeitando a realidade)
-        const getSwapCount = (div: Division) => {
-          if (div.relegationSlots !== undefined) return div.relegationSlots;
-          
-          // Fallback dinâmico apenas se não estiver definido
-          return Math.min(3, Math.floor(div.teams.length / 4)) || 1;
-        };
-
-        for (let i = 0; i < divisions.length - 1; i++) {
-          const upperDiv = divisions[i];
-          const lowerDiv = divisions[i + 1];
-          
-          const numToSwap = getSwapCount(league.divisions[i]);
-          
-          if (numToSwap > 0) {
-            const relegated = upperDiv.splice(upperDiv.length - numToSwap, numToSwap);
-            const promoted = lowerDiv.splice(0, numToSwap);
-            
-            upperDiv.push(...promoted);
-            lowerDiv.push(...relegated);
+        if (league.divisions.length === 8) {
+          if (league.leagueCup && league.leagueCup.rounds.length >= 3) {
+            const semiMatches = league.leagueCup.rounds.find(r => r.name.includes('Semifinais'))?.matches || [];
+            semiMatches.forEach(m => {
+              if (m.homeTeam) promotedFromE.push(mostUpToDateTeamsMap.get(m.homeTeam.id)!);
+              if (m.awayTeam) promotedFromE.push(mostUpToDateTeamsMap.get(m.awayTeam.id)!);
+            });
+          }
+          if (promotedFromE.length < 4) {
+            promotedFromE = [snapshot[4][0], snapshot[5][0], snapshot[6][0], snapshot[7][0]];
           }
         }
+
+        console.log(`[Série D] Promovendo da Série E: ${promotedFromE.map(t => t.teamName).join(', ')}`);
+        const relegatedD = snapshot[3].slice(-swapD);
+        console.log(`[Série D] Rebaixando para Série E: ${relegatedD.map(t => t.teamName).join(', ')}`);
+
+        const stayersD = snapshot[3].slice(swapC, snapshot[3].length - swapD);
+        const arrivalsFromC = snapshot[2].slice(-swapC);
+        finalDivisions[3] = [...stayersD, ...arrivalsFromC, ...promotedFromE];
+
+        // 3. Processar Série E (Módulos 4-7)
+        if (league.divisions.length === 8) {
+          const relegatedFromD = snapshot[3].slice(-swapD);
+          const eModules = [snapshot[4], snapshot[5], snapshot[6], snapshot[7]];
+          
+          for (let m = 0; m < 4; m++) {
+            const moduleIdx = 4 + m;
+            const remainingInModule = eModules[m].filter(t => !promotedFromE.map(p => p.id).includes(t.id));
+            const arrivals = relegatedFromD[m] ? [relegatedFromD[m]] : [];
+            finalDivisions[moduleIdx] = [...remainingInModule, ...arrivals];
+          }
+        }
+
+        console.log(`🇧🇷 --- FIM DA AUDITORIA BRASIL ---\n`);
+        finalTeamListForNextSeason = finalDivisions.flat();
+      } else if (divCount > 1) {
+        // Lógica Customizada de Promoção e Rebaixamento por País
+        // Snapshot original para consulta
+        const snapshot = league.divisions.map(d => [...getTeamsFromMap(d.teams)].sort(this.universeService.sortTeams));
+        const finalDivisions: Team[][] = [];
+
+        for (let i = 0; i < snapshot.length; i++) {
+          const currentDiv = snapshot[i];
+          
+          // Definição de fluxos para a Divisão [i]
+          const relegateOutCount = (i < snapshot.length - 1) ? getSwapCount(i) : 0;
+          const promoteOutCount = (i > 0) ? getSwapCount(i - 1) : 0;
+
+          // 1. Quem FICA (Quem não subiu e nem desceu)
+          const stayers = currentDiv.slice(promoteOutCount, currentDiv.length - relegateOutCount);
+
+          // 2. Quem ENTRA vindo de cima (Rebaixados da i-1)
+          const arrivalsFromAbove = (i > 0) ? snapshot[i-1].slice(-promoteOutCount) : [];
+
+          // 3. Quem ENTRA vindo de baixo (Promovidos da i+1)
+          const arrivalsFromBelow = (i < snapshot.length - 1) ? snapshot[i+1].slice(0, relegateOutCount) : [];
+
+          // Montagem final da divisão i
+          finalDivisions[i] = [...stayers, ...arrivalsFromAbove, ...arrivalsFromBelow];
+          
+          console.log(`[P/R GENERIC] Divisão ${i} (${league.countryId}): ${stayers.length} mantidos, ${arrivalsFromAbove.length} rebaixados, ${arrivalsFromBelow.length} promovidos.`);
+        }
         
-        finalTeamListForNextSeason = divisions.flat();
+        finalTeamListForNextSeason = finalDivisions.flat();
       } else {
         finalTeamListForNextSeason = league.divisions.flatMap(d => getTeamsFromMap(d.teams));
       }
@@ -141,6 +148,31 @@ export class SeasonService {
     });
 
     this.universeService.teams.set(Array.from(mostUpToDateTeamsMap.values()));
+
+    // --- LIMPEZA DE ESTATÍSTICAS (SÓ OCORRE APÓS AS TROCAS) ---
+    this.universeService.teams.update(teams => {
+      teams.forEach(t => {
+        t.stats = {
+          matchesPlayed: 0, wins: 0, draws: 0, losses: 0,
+          goalsFor: 0, goalsAgainst: 0, points: 0
+        };
+        // Limpar também estatísticas de copas dos jogadores
+        t.players.forEach(p => {
+          p.stats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+          p.cupStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+          p.internationalStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+          p.worldCupStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+          p.worldCupQualifierStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+          p.youthStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
+        });
+      });
+      return [...teams];
+    });
+
+    // Limpar histórico de jogos e transferências
+    this.universeService.matchHistory.set([]);
+    this.universeService.transferHistory.set([]);
+    // ---------------------------------------------------------
 
     const newSeason = this.universeService.season();
 
@@ -179,12 +211,22 @@ export class SeasonService {
   }
 
   public getConsolidatedTeamsAtSeasonEnd(): Map<string, Team> {
-    const teams = this.universeService.teams();
     const mostUpToDateTeamsMap = new Map<string, Team>();
     
-    // Agora pegamos diretamente do sinal de times, que é onde a evolução acontece
-    teams.forEach(t => {
-      if (t) mostUpToDateTeamsMap.set(t.id, JSON.parse(JSON.stringify(t)));
+    // 1. PRIORIDADE: Pegar times das ligas (onde os pontos e gols estão ATUALIZADOS pela simulação)
+    this.universeService.leagues().forEach(l => {
+      l.divisions.forEach(d => {
+        d.teams.forEach(t => {
+          if (t) mostUpToDateTeamsMap.set(t.id, JSON.parse(JSON.stringify(t)));
+        });
+      });
+    });
+
+    // 2. FALLBACK: Pegar do sinal global para garantir que nenhum time (ex: sem liga) seja perdido
+    this.universeService.teams().forEach(t => {
+      if (t && !mostUpToDateTeamsMap.has(t.id)) {
+        mostUpToDateTeamsMap.set(t.id, JSON.parse(JSON.stringify(t)));
+      }
     });
 
     return mostUpToDateTeamsMap;

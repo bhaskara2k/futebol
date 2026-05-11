@@ -415,7 +415,8 @@ export class UniverseService {
     if (b_gf !== a_gf) {
       return b_gf - a_gf;
     }
-    return (a.teamName || '').localeCompare(b.teamName || '');
+    // REMOVIDO: localeCompare por nome (isso causava o reset alfabético na rodada 0)
+    return 0;
   }
 
   public getContinentForLeague(countryId: string): string {
@@ -1177,17 +1178,34 @@ export class UniverseService {
     }
 
     if (countryId === 'ARG') {
-      const primeraTeams = teams.slice(0, 16);
-      const segundaTeams = teams.slice(16, 32);
-      const primeraDivision: Division = { id: 1, name: 'Liga Profesional', teams: primeraTeams, fixtures: this.generateFixtures(primeraTeams, 'Liga Profesional'), topScorers: [], topAssists: [], topMotm: [], relegationSlots: 2 };
-      const segundaDivision: Division = { id: 2, name: 'Primera B Nacional', teams: segundaTeams, fixtures: this.generateFixtures(segundaTeams, 'Primera B Nacional'), topScorers: [], topAssists: [], topMotm: [], relegationSlots: 2 };
-      const cup = this.generateCup(primeraTeams, segundaTeams);
+      const div1Teams = teams.slice(0, 16);
+      const div2Teams = teams.slice(16, 32);
+
+      const division1: Division = {
+        id: 1, name: 'Liga Profesional',
+        teams: div1Teams,
+        fixtures: this.generateFixtures(div1Teams, 'Liga Profesional'),
+        topScorers: [], topAssists: [], topMotm: [],
+        relegationSlots: 2
+      };
+
+      const division2: Division = {
+        id: 2, name: 'Primera B Nacional',
+        teams: div2Teams,
+        fixtures: this.generateFixtures(div2Teams, 'Primera B Nacional'),
+        topScorers: [], topAssists: [], topMotm: [],
+        relegationSlots: 0
+      };
+
+      const cup = this.generateCup(div1Teams, div2Teams);
       const totalRounds = (16 - 1) * 2;
+
       const rankings: ChampionshipRankings = existingRankings || {
         division1: [],
         division2: [],
         cup: [],
       };
+
       return {
         countryId,
         countryName: this.COUNTRY_NAMES[countryId],
@@ -1195,7 +1213,7 @@ export class UniverseService {
         currentRound: 0,
         totalRounds,
         status: 'ongoing',
-        divisions: [primeraDivision, segundaDivision],
+        divisions: [division1, division2],
         cup,
         history: existingHistory,
         rankings,

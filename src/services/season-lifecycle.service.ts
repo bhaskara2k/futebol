@@ -95,9 +95,6 @@ export class SeasonLifecycleService {
             // C. Incrementar Temporada
             this.universeService.season.update(s => s + 1);
 
-            // D. Limpar Estatísticas e Histórico de Jogos (Cleanup)
-            this.cleanupForNextSeason();
-
             // E. Salvar Estado Final no Firebase
             if (this.currentSaveId) {
                 const state = {

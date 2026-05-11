@@ -186,6 +186,32 @@ export class DivisionSetupComponent {
     }));
   }
 
+  assignByOverall(): void {
+    const activeLeagueId = this.activeLeagueTab();
+    const leagueToSetup = this.leaguesToSetup().find(l => l.countryId === activeLeagueId);
+
+    if (!leagueToSetup) return;
+
+    // Sort teams by overall descending
+    const sortedTeams = [...leagueToSetup.teams].sort((a, b) => b.overall - a.overall);
+
+    const newAssignmentsForLeague: Assignments = {};
+    let teamIndex = 0;
+
+    for (const division of leagueToSetup.divisions) {
+      const teamsForDivision = sortedTeams.slice(teamIndex, teamIndex + division.size);
+      for (const team of teamsForDivision) {
+        newAssignmentsForLeague[team.id] = division.name;
+      }
+      teamIndex += division.size;
+    }
+
+    this.assignments.update(current => ({
+      ...current,
+      ...newAssignmentsForLeague
+    }));
+  }
+
   confirmSetup(): void {
     if (!this.isSetupValid()) return;
 

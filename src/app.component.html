@@ -325,7 +325,7 @@
                         class="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity">
                       </div>
                       <img [src]="universeService.getTeamCrest(fm.match.homeTeam)"
-                        class="w-16 h-16 object-contain relative z-10 drop-shadow-2xl transition-transform duration-500 group-hover:scale-110">
+                        class="w-16 h-16 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110">
                       <div
                         class="absolute -top-1 -left-1 bg-gray-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded border border-white/10 shadow-xl z-20">
                         #{{ fm.rankA }}
@@ -352,7 +352,7 @@
                         class="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity">
                       </div>
                       <img [src]="universeService.getTeamCrest(fm.match.awayTeam)"
-                        class="w-16 h-16 object-contain relative z-10 drop-shadow-2xl transition-transform duration-500 group-hover:scale-110">
+                        class="w-16 h-16 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110">
                       <div
                         class="absolute -top-1 -right-1 bg-gray-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded border border-white/10 shadow-xl z-20">
                         #{{ fm.rankB }}
@@ -414,7 +414,7 @@
                 <!-- Crest & Name -->
                 <div class="flex items-center flex-grow min-w-0 pl-2">
                   <img [src]="universeService.getTeamCrest(item.team)"
-                    class="w-10 h-10 object-contain mr-3 transition-transform duration-500 group-hover:scale-110 drop-shadow-lg">
+                    class="w-10 h-10 object-contain mr-3 transition-transform duration-500 group-hover:scale-110">
                   <p class="font-black text-white text-sm uppercase tracking-wide truncate">{{ item.team.teamName }}</p>
                 </div>
 

@@ -1260,8 +1260,8 @@ export class AppComponent implements OnInit {
     if (!leagueId) return;
 
     this.manualResultModalData.set({
-      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: match.homeTeam.logoUrl },
-      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: match.awayTeam.logoUrl },
+      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: this.universeService.getTeamCrest(match.homeTeam) },
+      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: this.universeService.getTeamCrest(match.awayTeam) },
       homeScore: match.homeScore || 0,
       awayScore: match.awayScore || 0,
       callback: (h, a) => {
@@ -1275,8 +1275,8 @@ export class AppComponent implements OnInit {
     if (!leagueId) return;
 
     this.manualResultModalData.set({
-      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: data.match.homeTeam.logoUrl },
-      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: data.match.awayTeam.logoUrl },
+      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: this.universeService.getTeamCrest(data.match.homeTeam) },
+      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: this.universeService.getTeamCrest(data.match.awayTeam) },
       homeScore: data.leg === 1 ? (data.match.homeScoreLeg1 ?? 0) : (data.match.homeScoreLeg2 ?? 0),
       awayScore: data.leg === 1 ? (data.match.awayScoreLeg1 ?? 0) : (data.match.awayScoreLeg2 ?? 0),
       leg: data.leg,
@@ -1288,8 +1288,8 @@ export class AppComponent implements OnInit {
 
   async onSetInternationalManualResult(match: Match): Promise<void> {
     this.manualResultModalData.set({
-      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: match.homeTeam.logoUrl },
-      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: match.awayTeam.logoUrl },
+      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: this.universeService.getTeamCrest(match.homeTeam) },
+      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: this.universeService.getTeamCrest(match.awayTeam) },
       homeScore: match.homeScore || 0,
       awayScore: match.awayScore || 0,
       callback: (h, a) => {
@@ -1315,8 +1315,8 @@ export class AppComponent implements OnInit {
     if (!compId) return;
 
     this.manualResultModalData.set({
-      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: data.match.homeTeam.logoUrl },
-      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: data.match.awayTeam.logoUrl },
+      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: this.universeService.getTeamCrest(data.match.homeTeam) },
+      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: this.universeService.getTeamCrest(data.match.awayTeam) },
       homeScore: data.leg === 1 ? (data.match.homeScoreLeg1 ?? 0) : (data.match.homeScoreLeg2 ?? 0),
       awayScore: data.leg === 1 ? (data.match.awayScoreLeg1 ?? 0) : (data.match.awayScoreLeg2 ?? 0),
       leg: data.leg,

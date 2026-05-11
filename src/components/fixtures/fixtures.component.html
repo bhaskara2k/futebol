@@ -9,9 +9,9 @@
       <!-- Time da Casa -->
       <div class="w-2/5 flex items-center justify-end gap-3 text-right">
         <span class="font-black text-white text-base tracking-tighter">{{ universeService.getTeamAcronym(match.homeTeam.teamName) }}</span>
-        <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-lg border border-white/5 p-1">
+        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-xl p-0.5">
           <img [src]="universeService.getTeamCrest(match.homeTeam)" 
-            class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
+            class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
             (error)="tryPngFallback($event)">
         </div>
       </div>
@@ -40,9 +40,9 @@
 
       <!-- Time de Fora -->
       <div class="w-2/5 flex items-center justify-start gap-3 text-left">
-        <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-lg border border-white/5 p-1">
+        <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-xl p-0.5">
           <img [src]="universeService.getTeamCrest(match.awayTeam)" 
-            class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
+            class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-300"
             (error)="tryPngFallback($event)">
         </div>
         <span class="font-black text-white text-base tracking-tighter">{{ universeService.getTeamAcronym(match.awayTeam.teamName) }}</span>

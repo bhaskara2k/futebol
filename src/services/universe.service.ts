@@ -107,6 +107,15 @@ export class UniverseService {
     if (teamName.includes('LEICESTER')) return 'LEI';
     if (teamName.includes('SHEFFIELD UNITED')) return 'SHU';
     if (teamName.includes('SHEFFIELD WEDNESDAY')) return 'SHW';
+    if (teamName.includes('AFC BOURNEMOUTH')) return 'BOU';
+    if (teamName.includes('AFC WIMBLEDON')) return 'WIM';
+    if (teamName.includes('BLACKBURN ROVERS')) return 'BBR';
+    if (teamName.includes('HUDDERSFIELD TOWN')) return 'HUD';
+    if (teamName.includes('DERBY COUNTY')) return 'DER';
+    if (teamName.includes('IPSWICH TOWN')) return 'IPS';
+    if (teamName.includes('PLYMOUTH ARGYLE')) return 'PLY';
+    if (teamName.includes('PRESTON NORTH END')) return 'PNE';
+    if (teamName.includes('WIGAN ATHLETIC')) return 'WIG';
 
     if (teamName.includes('BARCELONA')) return 'FCB';
     if (teamName.includes('ATLÉTICO DE MADRID')) return 'ATM';
@@ -131,6 +140,15 @@ export class UniverseService {
     if (teamName.includes('CAGLIARI')) return 'CAG';
     if (teamName.includes('SAMPDORIA')) return 'SAM';
     if (teamName.includes('MONZA')) return 'MON';
+    if (teamName.includes('PARMA CALCIO')) return 'PAR';
+    if (teamName.includes('COMO 1907')) return 'COM';
+    if (teamName.includes('REGGIANA 1919')) return 'REG';
+    if (teamName.includes('AS ROMA')) return 'ASR';
+    if (teamName.includes('US SASSUOLO')) return 'USS';
+    if (teamName.includes('HELLAS VERONA')) return 'HEL';
+    if (teamName.includes('PESCARA CALCIO')) return 'PES';
+    if (teamName.includes('GENOA CFC')) return 'GEN';
+    if (teamName.includes('US LECCE')) return 'LEC';
 
     if (teamName.includes('BORUSSIA DORTMUND')) return 'BVB';
     if (teamName.includes('BAYER LEVERKUSEN')) return 'B04';
@@ -147,6 +165,9 @@ export class UniverseService {
     if (teamName.includes('WERDER BREMEN')) return 'SVW';
     if (teamName.includes('SCHALKE 04')) return 'S04';
     if (teamName.includes('HAMBURG')) return 'HSV';
+    if (teamName.includes('1860 MUNCHEN')) return 'TSV';
+    if (teamName.includes('TSG HOFFENHEIM')) return 'TSG';
+    if (teamName.includes('FC KAISERSLAUTERN')) return 'FCK';
 
     if (teamName.includes('PARIS SAINT-GERMAIN')) return 'PSG';
     if (teamName.includes('OLYMPIQUE LYONNAIS')) return 'OL';
@@ -229,28 +250,28 @@ export class UniverseService {
   revelationOfTheSeason = signal<BestPlayerAwardRecord | null>(null);
   teamOfTheSeason = signal<BestPlayerAwardRecord[] | null>(null);
   transferHistory = signal<TransferRecord[]>([]);
-  
+
   // Point B: Histórico simplificado de temporadas
   seasonSummaries = signal<any[]>([]);
 
   getRelegationSlots(countryId: string, divisionIndex: number, totalDivisions: number): number {
     if (divisionIndex >= totalDivisions - 1) return 0; // Última divisão não rebaixa
-    
+
     const cId = countryId.trim();
     if (cId === 'BRA') return 4;
-    
+
     // Ligas com 3 rebaixados
     if (['ENG', 'ESP', 'ITA', 'JPN', 'SAU'].includes(cId)) return 3;
-    
+
     // Ligas com 2 rebaixados
     if (['GER', 'FRA', 'POR', 'NED', 'ARG', 'RUS', 'BEL'].includes(cId)) return 2;
-    
+
     // Ligas com 1 rebaixado
     if (['KOR'].includes(cId)) return 1;
-    
+
     // Sem rebaixamento
     if (['USA', 'MEX', 'AUS'].includes(cId)) return 0;
-    
+
     return 2; // Fallback padrão
   }
 
@@ -2993,7 +3014,7 @@ export class UniverseService {
 
     // 1. Restaurar Metadados
     this.season.set(state.season || 1);
-    
+
     // 2. Restaurar Times (Já vêm completos com players e stats)
     if (state.teams && state.teams.length > 0) {
       this.teams.set(state.teams);
@@ -3021,9 +3042,9 @@ export class UniverseService {
   processYearlyEvolution() {
     const allTeams = this.teams();
     const currentLeagues = this.leagues();
-    
+
     this.evolutionService.evolveUniverse(allTeams, currentLeagues);
-    
+
     // Atualizar o signal para refletir os novos overalls
     this.teams.set([...allTeams]);
   }
@@ -3034,13 +3055,13 @@ export class UniverseService {
    */
   public getLeagueSlotsConfig(countryId: string): { promotion: number, relegation: number } {
     const id = countryId.trim();
-    
+
     // Regras por país
     if (['ENG', 'ESP'].includes(id)) return { promotion: 3, relegation: 3 };
     if (['ITA', 'GER', 'FRA', 'POR', 'NED', 'ARG', 'RUS', 'TUR', 'BEL'].includes(id)) return { promotion: 2, relegation: 2 };
     if (id === 'BRA') return { promotion: 4, relegation: 4 };
     if (id === 'USA') return { promotion: 0, relegation: 0 };
-    
+
     // Padrão para ligas menores ou não listadas
     return { promotion: 2, relegation: 2 };
   }
@@ -3052,7 +3073,7 @@ export class UniverseService {
    */
   public recalibrateAllStats(): void {
     console.log('🛠️ Iniciando recalibragem de estatísticas...');
-    
+
     // 1. Resetar stats de todos os times
     const currentTeams = this.teams();
     currentTeams.forEach(t => {
@@ -3068,7 +3089,7 @@ export class UniverseService {
             if (match.played && match.homeScore !== undefined && match.awayScore !== undefined) {
               const home = currentTeams.find(t => t.id === match.homeTeam.id);
               const away = currentTeams.find(t => t.id === match.awayTeam.id);
-              
+
               if (home && away) {
                 home.stats.matchesPlayed++;
                 away.stats.matchesPlayed++;

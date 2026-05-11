@@ -9,6 +9,9 @@ export class EvolutionService {
    */
   evolveUniverse(teams: Team[], leagues: League[]) {
     console.log('🧬 Processando Evolução do Universo (Dynasty Engine)...');
+    let increased = 0;
+    let decreased = 0;
+    let stable = 0;
     
     teams.forEach(team => {
       const oldOverall = team.overall;
@@ -19,14 +22,13 @@ export class EvolutionService {
       // 2. Cálculo de Performance vs Expectativa
       const performanceFactor = this.calculatePerformanceFactor(team, leagues);
 
-      // 3. Aplicar Ciclo de Vida do Elenco com Sarrafo de Expectativa
+      // 3. Aplicar Ciclo de Vida do Elenco
       this.applySquadLifecycle(team, performanceFactor);
 
-      // 4. Fator Caos (Cisnes Negros e Projetos Bilionários) - RECALIBRADO
+      // 4. Fator Caos (Cisnes Negros e Projetos Bilionários)
       this.applyChaosAndProjects(team);
 
-      // 5. Resistência de Elite (Diminishing Returns)
-      // Quanto maior o overall, maior a "gravidade" puxando para baixo
+      // 5. Resistência de Elite
       if (team.overall > 85) {
         const resistance = (team.overall - 85) * 0.15;
         team.overall -= (Math.random() * resistance);
@@ -37,12 +39,19 @@ export class EvolutionService {
       
       // Calcular Variação
       team.overallVariation = team.overall - oldOverall;
+      if (team.overallVariation > 0) increased++;
+      else if (team.overallVariation < 0) decreased++;
+      else stable++;
+
+      if (team.overallVariation !== 0) {
+        console.log(`📈 [EVOLUÇÃO] ${team.teamName}: ${oldOverall} -> ${team.overall} (${team.overallVariation > 0 ? '+' : ''}${team.overallVariation})`);
+      }
 
       // Avançar passo do ciclo (1 a 8)
       team.cycleStep = (team.cycleStep || 1) >= 8 ? 1 : (team.cycleStep || 1) + 1;
     });
 
-    console.log('✅ Evolução concluída.');
+    console.log(`✅ Evolução concluída: ${increased} subiram, ${decreased} caíram, ${stable} estáveis.`);
   }
 
   private initializeTeamDNA(team: Team) {
@@ -62,50 +71,64 @@ export class EvolutionService {
     const league = leagues.find(l => l.countryId === team.countryId);
     if (!league) return 0;
 
-    // Encontrar posição do time nas divisões
+    // Encontrar posição do time nas divisões (ORDENADA POR PONTOS)
     let position = 10;
     let totalTeams = 20;
     
     for (const div of league.divisions) {
       const idx = div.teams.findIndex(t => t.id === team.id);
       if (idx !== -1) {
-        position = idx + 1;
+        // Precisamos saber a posição real na tabela
+        const sortedTeams = [...div.teams].sort((a, b) => {
+          const ptsA = a.stats?.points ?? 0;
+          const ptsB = b.stats?.points ?? 0;
+          if (ptsA !== ptsB) return ptsB - ptsA;
+          
+          const gdA = (a.stats?.goalsFor ?? 0) - (a.stats?.goalsAgainst ?? 0);
+          const gdB = (b.stats?.goalsFor ?? 0) - (b.stats?.goalsAgainst ?? 0);
+          if (gdA !== gdB) return gdB - gdA;
+          
+          return (b.stats?.goalsFor ?? 0) - (a.stats?.goalsFor ?? 0);
+        });
+        
+        position = sortedTeams.findIndex(t => t.id === team.id) + 1;
         totalTeams = div.teams.length;
         break;
       }
     }
 
     // Fator de Performance: 1.0 (excelente) a -1.0 (péssimo)
-    // Se o time ficar no topo (G4), fator positivo. Se ficar no fundo, fator negativo.
     const relativePos = position / totalTeams;
-    if (relativePos <= 0.2) return 1.0; // Top 20%
-    if (relativePos <= 0.4) return 0.5; // Top 40%
-    if (relativePos >= 0.8) return -1.2; // Bottom 20% (Crise)
-    if (relativePos >= 0.6) return -0.6; // Bottom 40%
+    if (relativePos <= 0.2) return 1.0; // Top 20% (Campeão/G4)
+    if (relativePos <= 0.4) return 0.5; // Top 40% (Vagas Internacionais)
+    if (relativePos >= 0.8) return -1.5; // Bottom 20% (Zona de Rebaixamento/Crise)
+    if (relativePos >= 0.6) return -0.8; // Bottom 40% (Luta contra o Z4)
     
-    return 0; // Mediano
+    return 0; // Meio de tabela
   }
 
   private applySquadLifecycle(team: Team, performanceFactor: number) {
     const step = team.cycleStep || 1;
     const isElite = team.overall >= 85;
     
-    // O sarrafo é maior para times de elite
-    const difficultyMultiplier = isElite ? 0.5 : 1.0;
+    // O sarrafo é maior para times de elite (mais difícil subir, mais fácil cair)
+    const difficultyMultiplier = isElite ? 0.6 : 1.0;
 
-    // Anos 1-2: Reconstrução
+    // Anos 1-2: Reconstrução / Subida
     if (step <= 2) {
-      const baseGrowth = (Math.random() * 2) + 0.2;
-      team.overall += (baseGrowth + (performanceFactor * 1.5)) * difficultyMultiplier;
+      const baseGrowth = (Math.random() * 2.5) + 0.5; // Crescimento base garantido
+      team.overall += (baseGrowth + (performanceFactor * 2)) * difficultyMultiplier;
     } 
-    // Anos 3-6: Auge/Estabilidade
+    // Anos 3-6: Auge / Estabilidade
     else if (step <= 6) {
-      team.overall += (Math.random() * 0.8) - 0.4 + (performanceFactor * 0.8);
+      // Ampliado para +-1.2 para que o arredondamento permita mudanças de 1 ponto
+      const stabilityVar = (Math.random() * 2.4) - 1.2; 
+      team.overall += stabilityVar + (performanceFactor * 1.0);
     }
-    // Anos 7-8: Declínio
+    // Anos 7-8: Envelhecimento / Declínio
     else {
-      const decline = (Math.random() * 2) + 0.5;
-      team.overall -= (decline - (performanceFactor * 0.5));
+      const decline = (Math.random() * 2.5) + 1.0;
+      team.overall -= (decline - (performanceFactor * 0.8));
     }
   }
 

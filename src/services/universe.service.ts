@@ -2375,8 +2375,7 @@ export class UniverseService {
           return {
             ...t,
             players: newPlayers,
-            budget: t.budget - transferCost,
-            overall: this.calculateTeamOverall(newPlayers)
+            budget: t.budget - transferCost
           };
         }
         if (t.id === sellingTeam!.id) {
@@ -2384,8 +2383,7 @@ export class UniverseService {
           return {
             ...t,
             players: newPlayers,
-            budget: t.budget + transferCost,
-            overall: this.calculateTeamOverall(newPlayers)
+            budget: t.budget + transferCost
           };
         }
         return t;
@@ -2423,8 +2421,7 @@ export class UniverseService {
 
         return {
           ...team,
-          players: newPlayers,
-          overall: this.calculateTeamOverall(newPlayers)
+          players: newPlayers
         };
       });
     });
@@ -2522,7 +2519,7 @@ export class UniverseService {
             const gkIdx = newPlayers.findIndex(p => p.id === sorted[0].id);
             if (gkIdx > -1) newPlayers[gkIdx] = { ...newPlayers[gkIdx], isGoalkeeper: true };
           }
-          return { ...t, budget: t.budget - penalty, players: newPlayers, overall: this.calculateTeamOverall(newPlayers) };
+          return { ...t, budget: t.budget - penalty, players: newPlayers };
         }
         if (t.id === freeAgentTeam.id) {
           return { ...t, players: [...t.players, movedPlayer] };
@@ -2550,7 +2547,7 @@ export class UniverseService {
             const gkIdx = newPlayers.findIndex(p => p.id === sorted[0].id);
             if (gkIdx > -1) newPlayers[gkIdx] = { ...newPlayers[gkIdx], isGoalkeeper: true };
           }
-          return { ...t, players: newPlayers, overall: this.calculateTeamOverall(newPlayers) };
+          return { ...t, players: newPlayers };
         }
         if (t.teamName === 'APOSENTADOS') {
           const retiredPlayer = {
@@ -2590,7 +2587,7 @@ export class UniverseService {
           const needsGK = !newYouth.some(y => y.isGoalkeeper);
           newYouth.push(this.generateYouthPlayer(t.countryId, needsGK));
 
-          return { ...t, players: newPlayers, youthAcademy: newYouth, overall: this.calculateTeamOverall(newPlayers) };
+          return { ...t, players: newPlayers, youthAcademy: newYouth };
         }
         return t;
       });
@@ -3033,19 +3030,38 @@ export class UniverseService {
     // 1. Restaurar Metadados
     this.season.set(state.season || 1);
 
-    // 2. Restaurar Times (Já vêm completos com players e stats)
+    // 2. Restaurar Times (Master List)
     if (state.teams && state.teams.length > 0) {
       this.teams.set(state.teams);
     }
 
-    // 3. Restaurar Ligas (Já vêm reconstruídas com referências de times)
+    // Criar um mapa para re-linkar referências e garantir que todos usem o MESMO objeto em memória
+    const teamMap = new Map(this.teams().map(t => [t.id, t]));
+
+    // 3. Restaurar Ligas (Re-linkando referências)
     if (state.leagues && state.leagues.length > 0) {
-      this.leagues.set(state.leagues);
+      const linkedLeagues = state.leagues.map((l: League) => ({
+        ...l,
+        divisions: l.divisions.map(d => ({
+          ...d,
+          teams: d.teams.map(t => teamMap.get(t.id) || t)
+        }))
+      }));
+      this.leagues.set(linkedLeagues);
     }
 
-    // 4. Restaurar Competições Internacionais
+    // 4. Restaurar Competições Internacionais (Re-linkando referências)
     if (state.internationalComps && state.internationalComps.length > 0) {
-      this.internationalCompetitions.set(state.internationalComps);
+      const linkedIntComps = state.internationalComps.map((comp: InternationalCompetition) => {
+        if (comp.rankings) {
+          comp.rankings = comp.rankings.map(r => ({
+            ...r,
+            team: teamMap.get(r.team.id) || r.team
+          }));
+        }
+        return comp;
+      });
+      this.internationalCompetitions.set(linkedIntComps);
     }
 
     // 5. Restaurar Resumos
@@ -3058,13 +3074,27 @@ export class UniverseService {
    * Dispara a evolução anual das equipes
    */
   processYearlyEvolution() {
+    // 1. Consolidar os times das ligas para a Master List (Garante que pontos/stats sejam preservados)
+    const consolidatedTeams = new Map<string, Team>();
+    this.leagues().forEach(league => {
+      league.divisions.forEach(div => {
+        div.teams.forEach(t => consolidatedTeams.set(t.id, t));
+      });
+    });
+
+    if (consolidatedTeams.size > 0) {
+      this.teams.set(Array.from(consolidatedTeams.values()));
+    }
+
     const allTeams = this.teams();
     const currentLeagues = this.leagues();
 
+    // 2. Rodar a evolução
     this.evolutionService.evolveUniverse(allTeams, currentLeagues);
 
-    // Atualizar o signal para refletir os novos overalls
+    // 3. Atualizar os signals e refletir em todo o app
     this.teams.set([...allTeams]);
+    this.syncLeagues(); 
   }
 
   /**

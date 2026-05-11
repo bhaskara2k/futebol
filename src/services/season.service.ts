@@ -40,12 +40,31 @@ export class SeasonService {
         return Math.min(3, Math.floor(div.teams.length / 4)) || 1;
       };
 
+      // Helper robusto de ordenação por mérito (Pontos > Saldo > Gols)
+      const sortByMerit = (a: Team, b: Team) => {
+        const ptsA = a.stats?.points ?? 0;
+        const ptsB = b.stats?.points ?? 0;
+        if (ptsA !== ptsB) return ptsB - ptsA;
+        const gdA = (a.stats?.goalsFor ?? 0) - (a.stats?.goalsAgainst ?? 0);
+        const gdB = (b.stats?.goalsFor ?? 0) - (b.stats?.goalsAgainst ?? 0);
+        if (gdA !== gdB) return gdB - gdA;
+        return (b.stats?.goalsFor ?? 0) - (a.stats?.goalsFor ?? 0);
+      };
+
       let finalTeamListForNextSeason: Team[] = [];
 
       if (league.countryId === 'BRA') {
-        const snapshot = league.divisions.map(d => [...getTeamsFromMap(d.teams)].sort(this.universeService.sortTeams));
-        const finalDivisions: Team[][] = [];
+        // snapshot das divisões com auditoria de pontos
+        const snapshot = league.divisions.map((div, dIdx) => {
+          // Ordenar diretamente os times que estavam jogando na divisão
+          const sorted = [...div.teams].sort(sortByMerit);
+          
+          console.log(`[AUDITORIA PONTOS] Divisão ${dIdx}: Top=${sorted[0]?.teamName}(${sorted[0]?.stats?.points}pts), Bottom=${sorted[sorted.length-1]?.teamName}(${sorted[sorted.length-1]?.stats?.points}pts)`);
+          
+          return sorted;
+        });
 
+        const finalDivisions: Team[][] = [];
         console.log(`\n🇧🇷 --- AUDITORIA DE TRANSIÇÃO: BRASIL (Temporada ${this.universeService.season()}) ---`);
 
         // 1. Processar Séries A, B e C (Symmetrical 4-down/4-up)
@@ -110,11 +129,44 @@ export class SeasonService {
         }
 
         console.log(`🇧🇷 --- FIM DA AUDITORIA BRASIL ---\n`);
-        finalTeamListForNextSeason = finalDivisions.flat();
+
+        // --- GUARDA DE DUPLICIDADE: Limpeza e Resgate ---
+        const allBrazilianTeams = snapshot.flat(); // Todos os 128 times originais
+        const assignedIds = new Set<string>();
+        const uniqueDivisions: Team[][] = [];
+
+        finalDivisions.forEach((div, i) => {
+          const uniqueDiv: Team[] = [];
+          div.forEach(team => {
+            if (!assignedIds.has(team.id)) {
+              uniqueDiv.push(team);
+              assignedIds.add(team.id);
+            } else {
+              console.warn(`⚠️ DUPLICIDADE: ${team.teamName} removido da divisão ${i}.`);
+            }
+          });
+          uniqueDivisions[i] = uniqueDiv;
+        });
+
+        // Identificar times que "ficaram sem cadeira"
+        const unassignedTeams = allBrazilianTeams.filter(t => !assignedIds.has(t.id));
+
+        // Preencher buracos usando os times que ficaram de fora
+        uniqueDivisions.forEach((div, i) => {
+          const targetSize = i < 4 ? 20 : (snapshot[i]?.length || 10);
+          while (div.length < targetSize && unassignedTeams.length > 0) {
+            const rescuedTeam = unassignedTeams.shift()!;
+            div.push(rescuedTeam);
+            assignedIds.add(rescuedTeam.id);
+            console.log(`✅ RESGATE: ${rescuedTeam.teamName} inserido na divisão ${i} para completar a liga.`);
+          }
+        });
+
+        finalTeamListForNextSeason = uniqueDivisions.flat();
       } else if (divCount > 1) {
         // Lógica Customizada de Promoção e Rebaixamento por País
-        // Snapshot original para consulta
-        const snapshot = league.divisions.map(d => [...getTeamsFromMap(d.teams)].sort(this.universeService.sortTeams));
+        // Snapshot original para consulta (ORDENADO POR PONTOS DIRETOS DA DIVISÃO)
+        const snapshot = league.divisions.map(div => [...div.teams].sort(sortByMerit));
         const finalDivisions: Team[][] = [];
 
         for (let i = 0; i < snapshot.length; i++) {

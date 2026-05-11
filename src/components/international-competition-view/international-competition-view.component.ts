@@ -27,6 +27,8 @@ export class InternationalCompetitionViewComponent {
   viewPlayerDetails = output<{ player: Player, team: Team }>();
   viewTeamDetails = output<Team>();
   viewMatchDetails = output<{ cupMatch: CupMatch, leg: 1 | 2 }>();
+  setManualResult = output<any>();
+  setManualCupResult = output<any>();
 
   statType = computed<'international' | 'worldCup' | 'worldCupQualifier' | 'youth'>(() => {
     const compId = this.competition().id;

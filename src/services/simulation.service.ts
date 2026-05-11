@@ -176,10 +176,137 @@ export class SimulationService {
       homeTeamInDivision.stats.points += 1;
       awayTeamInDivision.stats.points += 1;
     }
-
-    match.homeTeam = homeTeamInDivision;
-    match.awayTeam = awayTeamInDivision;
   }
+
+  public applyManualResultForInternational(match: Match, division: Division, competitionId: string, homeGoals: number, awayGoals: number): void {
+    if (match.played) return;
+
+    const homeTeamInDivision = division.teams.find(t => t.id === match.homeTeam.id);
+    const awayTeamInDivision = division.teams.find(t => t.id === match.awayTeam.id);
+
+    if (!homeTeamInDivision || !awayTeamInDivision) return;
+
+    const isQualifier = competitionId.startsWith('WC_Q_');
+    const isWorldCupTier = competitionId === 'WORLD_CWC';
+    const statType: 'internationalStats' | 'worldCupStats' | 'worldCupQualifierStats' | 'youthStats' =
+      competitionId === 'EUR_YCL' ? 'youthStats' :
+        isQualifier ? 'worldCupQualifierStats' :
+          isWorldCupTier ? 'worldCupStats' :
+            'internationalStats';
+
+    match.homeScore = homeGoals;
+    match.awayScore = awayGoals;
+    match.played = true;
+
+    this.assignGoalEvents(match.events, homeTeamInDivision, homeGoals, statType, competitionId);
+    this.assignGoalEvents(match.events, awayTeamInDivision, awayGoals, statType, competitionId);
+    this.assignMotm(match.events, homeTeamInDivision, awayTeamInDivision, statType, competitionId);
+
+    const competitionName = this.universeService.TROPHY_NAMES[competitionId] || match.divisionName || 'Internacional';
+    this.universeService._recordHistoricMatch(
+      homeTeamInDivision,
+      awayTeamInDivision,
+      homeGoals,
+      awayGoals,
+      competitionName,
+      match.id,
+      this._extractScorers(match.events, homeTeamInDivision, awayTeamInDivision),
+      match.round
+    );
+
+    homeTeamInDivision.stats.matchesPlayed++;
+    awayTeamInDivision.stats.matchesPlayed++;
+    homeTeamInDivision.stats.goalsFor += homeGoals;
+    awayTeamInDivision.stats.goalsFor += awayGoals;
+    homeTeamInDivision.stats.goalsAgainst += awayGoals;
+    awayTeamInDivision.stats.goalsAgainst += homeGoals;
+
+    if (homeGoals > awayGoals) {
+      homeTeamInDivision.stats.wins++;
+      awayTeamInDivision.stats.losses++;
+      homeTeamInDivision.stats.points += 3;
+    } else if (awayGoals > homeGoals) {
+      awayTeamInDivision.stats.wins++;
+      homeTeamInDivision.stats.losses++;
+      awayTeamInDivision.stats.points += 3;
+    } else {
+      homeTeamInDivision.stats.draws++;
+      awayTeamInDivision.stats.draws++;
+      homeTeamInDivision.stats.points += 1;
+      awayTeamInDivision.stats.points += 1;
+    }
+  }
+
+  public applyManualCupResultForInternational(match: CupMatch, roundName: string, leg: 1 | 2, competition: InternationalCompetition, allTeams: Team[], homeGoals: number, awayGoals: number, addTrophyFn: (team: Team, trophyName: string, type: Trophy['type']) => void, captureHistoryFn: (comp: InternationalCompetition) => void): void {
+    const isFinal = roundName === 'Final';
+    const isLeg1 = leg === 1;
+
+    if (isLeg1) {
+      match.homeScoreLeg1 = homeGoals;
+      match.awayScoreLeg1 = awayGoals;
+      match.leg1Played = true;
+    } else {
+      match.homeScoreLeg2 = homeGoals;
+      match.awayScoreLeg2 = awayGoals;
+      match.leg2Played = true;
+    }
+
+    if (!isFinal && !isLeg1) {
+      match.played = true;
+    } else if (isFinal) {
+      match.played = true;
+    }
+
+    const homeTeam = allTeams.find(t => t.id === match.homeTeam.id)!;
+    const awayTeam = allTeams.find(t => t.id === match.awayTeam.id)!;
+
+    const statType: 'internationalStats' | 'worldCupStats' | 'worldCupQualifierStats' | 'youthStats' =
+      competition.id === 'EUR_YCL' ? 'youthStats' :
+        competition.id.startsWith('WC_Q_') ? 'worldCupQualifierStats' :
+          competition.id === 'WORLD_CWC' ? 'worldCupStats' :
+            'internationalStats';
+
+    const events = isLeg1 ? (match.eventsLeg1 || (match.eventsLeg1 = { goals: [], assists: [], motm: null })) : (match.eventsLeg2 || (match.eventsLeg2 = { goals: [], assists: [], motm: null }));
+
+    this.assignGoalEvents(events, homeTeam, homeGoals, statType, competition.id);
+    this.assignGoalEvents(events, awayTeam, awayGoals, statType, competition.id);
+    
+    if (match.played) {
+      this.assignMotm(events, homeTeam, awayTeam, statType, competition.id);
+      
+      const totalHome = (match.homeScoreLeg1 || 0) + (match.homeScoreLeg2 || 0);
+      const totalAway = (match.awayScoreLeg1 || 0) + (match.awayScoreLeg2 || 0);
+
+      if (totalHome > totalAway) {
+        match.winner = match.homeTeam;
+        match.aggregateWinnerId = match.homeTeam.id;
+      } else if (totalAway > totalHome) {
+        match.winner = match.awayTeam;
+        match.aggregateWinnerId = match.awayTeam.id;
+      } else {
+        match.homePenalties = 5;
+        match.awayPenalties = 4;
+        match.winner = match.homeTeam;
+        match.aggregateWinnerId = match.homeTeam.id;
+      }
+
+      if (isFinal) {
+        competition.knockoutPhase.champion = match.winner;
+        competition.status = 'finished';
+        const trophyName = this.universeService.TROPHY_NAMES[competition.id] || competition.name;
+        const trophyType = competition.continent === 'WORLD' ? 'world' : 'international';
+        const fullWinner = allTeams.find(t => t.id === match.winner?.id)!;
+        addTrophyFn(fullWinner, trophyName, trophyType);
+        captureHistoryFn(competition);
+      }
+    }
+
+    this.universeService._recordHistoricMatch(
+      homeTeam, awayTeam, homeGoals, awayGoals, competition.name, match.id,
+      this._extractScorers(events, homeTeam, awayTeam)
+    );
+  }
+
 
   public simulateSingleCupLeg(match: CupMatch, roundName: string, leg: 1 | 2, context: League | InternationalCompetition, allTeamsInContext: Team[], addTrophyCallback: (team: Team, trophyName: string, trophyType: Trophy['type']) => void, captureHistoryCallback: (comp: any) => void, onFinalCallback: () => void, cupType?: 'main' | 'league' | 'supercup') {
     const homeTeam = allTeamsInContext.find(t => t.id === match.homeTeam.id)!;

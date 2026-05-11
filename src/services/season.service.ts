@@ -191,6 +191,17 @@ export class SeasonService {
   }
 
   public calculateBestPlayerInTheWorld(): void {
-    // Player system disabled
+    console.log('🏆 Temporada finalizada! Preparando resumo de campeões...');
+    
+    /* 
+    if (typeof window !== 'undefined') {
+      const app = (window as any).appComponent;
+      if (app) {
+        // Garantimos que a visão mude para o resumo da temporada
+        // O template HTML usa isEndOfSeason() que depende do status do Mundial.
+        app.view.set('continent_menu'); // Voltamos para o menu onde o resumo aparece
+      }
+    }
+    */
   }
 }

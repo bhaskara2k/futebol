@@ -1282,18 +1282,7 @@ export class InternationalCompetitionService {
         const allTeamsInComp = this.universeService.getUpToDateTeamsForInternationalComp(competition);
 
         const onFinalCallback = () => {
-          if (competitionId === 'WORLD_CWC') {
-            const season = this.universeService.season();
-            if (season % 4 === 3) {
-              // Ano de Copa do Mundo Sub-20
-              this.universeService.gamePhase.set('world_cup_pending');
-            } else if (season % 4 === 0) {
-              // Ano de Copa do Mundo Principal (Inicia Eliminatórias)
-              this.universeService.gamePhase.set('qualifiers_pending');
-            } else {
-              this.seasonService.calculateBestPlayerInTheWorld();
-            }
-          } else if (competitionId === 'WC_FINALS' || competitionId === 'WC_U20_FINALS') {
+          if (competitionId === 'WORLD_CWC' || competitionId === 'WC_FINALS' || competitionId === 'WC_U20_FINALS') {
             this.seasonService.calculateBestPlayerInTheWorld();
           }
         };
@@ -1327,6 +1316,59 @@ export class InternationalCompetitionService {
         this.propagateTeamUpdate(finalChampion);
       }
     }
+  }
+
+  public setInternationalLeagueMatchResult(continent: 'AFR' | 'ASI' | 'NCA' | 'SAM' | 'EUR' | 'WORLD', matchId: string, homeScore: number, awayScore: number): void {
+    this.universeService.internationalCompetitions.update(comps => {
+      const newComps = JSON.parse(JSON.stringify(comps));
+      for (const competition of newComps) {
+        if (competition.continent !== continent || competition.status !== 'league') continue;
+        for (const division of competition.leaguePhase) {
+          const roundFixtures = division.fixtures[competition.currentLeagueRound];
+          const match = roundFixtures?.find((m: Match) => m.id === matchId);
+          if (match) {
+            this.simulationService.applyManualResultForInternational(match, division, competition.id, homeScore, awayScore);
+            this.recalculateLeagueStandings(competition);
+            this.updateInternationalPlayerRankings(competition);
+            return newComps;
+          }
+        }
+      }
+      return newComps;
+    });
+  }
+
+  public setInternationalCupMatchResult(competitionId: string, matchId: string, roundName: string, leg: 1 | 2, homeScore: number, awayScore: number): void {
+    this.universeService.internationalCompetitions.update(comps => {
+      const newComps = JSON.parse(JSON.stringify(comps));
+      const competition = newComps.find((c: InternationalCompetition) => c.id === competitionId);
+      if (!competition) return newComps;
+
+      const isPlayoffs = competition.status === 'playoffs';
+      const phase = isPlayoffs ? competition.playoffPhase! : competition.knockoutPhase;
+      const round = phase.rounds.find(r => r.name === roundName);
+      const match = round?.matches.find(m => m.id === matchId);
+
+      if (match) {
+        const allTeamsInComp = this.universeService.getUpToDateTeamsForInternationalComp(competition);
+        this.simulationService.applyManualCupResultForInternational(
+          match, roundName, leg, competition, allTeamsInComp, homeScore, awayScore,
+          this.addTrophyToTeam.bind(this), this.captureInternationalHistory.bind(this)
+        );
+
+        if (isPlayoffs) {
+          if (competition.continent === 'NCA') this.advanceNorthAmericaPlayoffs(competition);
+          else if (competition.continent === 'SAM') this.advanceSouthAmericaPlayoffs(competition);
+          else if (competition.continent === 'EUR') this.advanceEuropePlayoffs(competition);
+        } else {
+          this.advanceInternationalCupRound(competition);
+        }
+
+        this.updateInternationalPlayerRankings(competition);
+      }
+
+      return newComps;
+    });
   }
 
   private advanceAfricaPlayoffs(competition: InternationalCompetition): void {
@@ -1388,18 +1430,7 @@ export class InternationalCompetitionService {
         const allTeamsInComp = this.universeService.getUpToDateTeamsForInternationalComp(competition);
 
         const onFinalCallback = () => {
-          if (competitionId === 'WORLD_CWC') {
-            const season = this.universeService.season();
-            if (season % 4 === 3) {
-              // Ano de Copa do Mundo Sub-20
-              this.universeService.gamePhase.set('world_cup_pending');
-            } else if (season % 4 === 0) {
-              // Ano de Copa do Mundo Principal (Inicia Eliminatórias)
-              this.universeService.gamePhase.set('qualifiers_pending');
-            } else {
-              this.seasonService.calculateBestPlayerInTheWorld();
-            }
-          } else if (competitionId === 'WC_FINALS' || competitionId === 'WC_U20_FINALS') {
+          if (competitionId === 'WORLD_CWC' || competitionId === 'WC_FINALS' || competitionId === 'WC_U20_FINALS') {
             this.seasonService.calculateBestPlayerInTheWorld();
           }
         };

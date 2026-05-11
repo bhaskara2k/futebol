@@ -162,6 +162,7 @@ export class AppComponent implements OnInit {
   isProcessingSeason = signal(false);
   isSaving = signal(false);
   saveStatus = signal<'idle' | 'saving' | 'success' | 'error'>('idle');
+  isSeasonSummaryVisible = signal(false); // Gatekeeper para a tela de gala/resumo
 
   private nationalityMap = new Map<string, string>(NATIONALITIES.map(n => [n.code3, n.code2]));
 
@@ -640,14 +641,24 @@ export class AppComponent implements OnInit {
 
   isNewSeasonAvailable = computed(() => {
     const gamePhase = this.universeService.gamePhase();
-    // A nova temporada fica "disponível" mas não inicia sozinha.
-    // O usuário deve clicar em "Iniciar Nova Temporada" no resumo.
-    return gamePhase === 'regular_season' && this.worldCup()?.status === 'finished';
+    const wc = this.worldCup();
+    
+    // A nova temporada fica "disponível" quando a fase atual (seja regular ou copas) 
+    // chega ao fim com o Mundial de Clubes ou Mundial de Seleções finalizado.
+    const isWCFinished = wc?.status === 'finished';
+    
+    return isWCFinished;
   });
 
   isEndOfSeason = computed(() => {
-    return this.universeService.bestPlayerOfTheSeasonPodium() !== null || this.isNewSeasonAvailable();
+    // A tela de campeões só aparece quando o usuário estiver no menu do continente
+    return this.isNewSeasonAvailable() && this.view() === 'continent_menu';
   });
+
+  showSeasonSummary(): void {
+    this.isSeasonSummaryVisible.set(true);
+    this.view.set('continent_menu');
+  }
 
   isQualifierPending = computed(() => false);
   isWorldCupPending = computed(() => false);
@@ -1048,6 +1059,7 @@ export class AppComponent implements OnInit {
 
 
   async startNewSeason(): Promise<void> {
+    this.isSeasonSummaryVisible.set(false); // Reseta o gatekeeper
     if (this.isProcessingSeason()) return;
     this.isProcessingSeason.set(true);
 
@@ -1248,8 +1260,8 @@ export class AppComponent implements OnInit {
     if (!leagueId) return;
 
     this.manualResultModalData.set({
-      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName },
-      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName },
+      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: match.homeTeam.logoUrl },
+      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: match.awayTeam.logoUrl },
       homeScore: match.homeScore || 0,
       awayScore: match.awayScore || 0,
       callback: (h, a) => {
@@ -1263,13 +1275,53 @@ export class AppComponent implements OnInit {
     if (!leagueId) return;
 
     this.manualResultModalData.set({
-      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName },
-      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName },
+      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: data.match.homeTeam.logoUrl },
+      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: data.match.awayTeam.logoUrl },
       homeScore: data.leg === 1 ? (data.match.homeScoreLeg1 ?? 0) : (data.match.homeScoreLeg2 ?? 0),
       awayScore: data.leg === 1 ? (data.match.awayScoreLeg1 ?? 0) : (data.match.awayScoreLeg2 ?? 0),
       leg: data.leg,
       callback: (h, a) => {
         this.nationalCompetitionService.setCupMatchResult(leagueId, data.match.id, data.roundName, data.leg, h, a, data.cupType);
+      }
+    });
+  }
+
+  async onSetInternationalManualResult(match: Match): Promise<void> {
+    this.manualResultModalData.set({
+      homeTeam: { id: match.homeTeam.id, name: match.homeTeam.teamName, logoUrl: match.homeTeam.logoUrl },
+      awayTeam: { id: match.awayTeam.id, name: match.awayTeam.teamName, logoUrl: match.awayTeam.logoUrl },
+      homeScore: match.homeScore || 0,
+      awayScore: match.awayScore || 0,
+      callback: (h, a) => {
+        const continent = this.selectedContinent() as any;
+        this.internationalCompetitionService.setInternationalLeagueMatchResult(continent, match.id, h, a);
+      }
+    });
+  }
+
+  async onSetInternationalManualCupResult(data: { match: CupMatch, roundName: string, leg: 1 | 2 }): Promise<void> {
+    const currentView = this.view();
+    let compId = '';
+    
+    if (currentView === 'club_world_cup') compId = 'WORLD_CWC';
+    else if (currentView === 'recopa') compId = 'SAM_REC';
+    else if (currentView === 'supercup') compId = 'EUR_SUP';
+    else if (currentView === 'international_leagues') {
+      compId = this.selectedContinent() === 'SAM'
+        ? (this.samActiveTab() === 'libertadores' ? 'SAM_LIB' : 'SAM_SUL')
+        : (this.eurActiveTab() === 'cl' ? 'EUR_CL' : this.eurActiveTab() === 'el' ? 'EUR_EL' : 'EUR_EUL');
+    }
+
+    if (!compId) return;
+
+    this.manualResultModalData.set({
+      homeTeam: { id: data.match.homeTeam.id, name: data.match.homeTeam.teamName, logoUrl: data.match.homeTeam.logoUrl },
+      awayTeam: { id: data.match.awayTeam.id, name: data.match.awayTeam.teamName, logoUrl: data.match.awayTeam.logoUrl },
+      homeScore: data.leg === 1 ? (data.match.homeScoreLeg1 ?? 0) : (data.match.homeScoreLeg2 ?? 0),
+      awayScore: data.leg === 1 ? (data.match.awayScoreLeg1 ?? 0) : (data.match.awayScoreLeg2 ?? 0),
+      leg: data.leg,
+      callback: (h, a) => {
+        this.internationalCompetitionService.setInternationalCupMatchResult(compId, data.match.id, data.roundName, data.leg, h, a);
       }
     });
   }
@@ -1846,6 +1898,12 @@ export class AppComponent implements OnInit {
       } finally {
         this.isSaving.set(false);
       }
+    }
+  }
+
+  async forceNextSeason() {
+    if (confirm('ATENÇÃO: Deseja forçar a virada de temporada? Use apenas se o jogo estiver travado no final do ano.')) {
+      await this.startNewSeason();
     }
   }
 

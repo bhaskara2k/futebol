@@ -143,6 +143,13 @@
             <i class="fas fa-tools text-orange-400 group-hover:rotate-12 transition-transform"></i>
           </button>
 
+          <!-- Botão de Forçar Próxima Temporada (Seta para Frente) -->
+          <button (click)="forceNextSeason()"
+            class="p-2 w-11 h-11 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all group flex items-center justify-center"
+            title="Forçar Próxima Temporada (Caso trave)">
+            <i class="fas fa-step-forward text-blue-400 group-hover:translate-x-0.5 transition-transform"></i>
+          </button>
+
           <!-- Botão de Reset Emergencial (Lixeira) -->
           <button (click)="forceReset()"
             class="p-2 w-11 h-11 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all group flex items-center justify-center"
@@ -1675,14 +1682,27 @@
     Competições - {{ continentName() }}
     }
   </h2>
+
   @if (isEndOfSeason()) {
-  @if(universeService.bestPlayerOfTheSeasonPodium(); as podium) {
-  <div
-    class="w-full max-w-7xl mx-auto space-y-12 animate-fade-in p-8 rounded-3xl gala-bg border border-white/10 shadow-2xl relative">
-    <!-- Header Decor -->
-    <div
-      class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-yellow-400/10 to-transparent pointer-events-none">
-    </div>
+  <!-- CHAMPIONS HALL OF FAME - TELA DE GALA -->
+  <div class="w-full max-w-7xl mx-auto space-y-12 animate-fade-in p-8 rounded-[3rem] gala-bg border border-white/10 shadow-2xl relative overflow-hidden">
+    
+    <!-- MUNDIAL DE CLUBES - O GRANDE CAMPEÃO -->
+    @if(worldCup(); as wc) {
+      @if(wc.knockoutPhase.champion; as champion) {
+      <div class="relative z-20 text-center py-12 animate-float">
+        <div class="inline-block relative">
+          <div class="absolute inset-0 bg-yellow-500/20 blur-[100px] rounded-full"></div>
+          <i class="fas fa-crown text-8xl text-yellow-500 mb-6 drop-shadow-[0_0_30px_rgba(234,179,8,0.8)]"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-yellow-400 uppercase tracking-[0.5em] mb-2">Campeão do Mundo</h2>
+        <h1 class="text-7xl md:text-9xl font-black text-white tracking-tighter drop-shadow-2xl mb-6">{{ champion.name }}</h1>
+        <div class="h-1 w-64 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mx-auto"></div>
+      </div>
+      }
+    }
+
+    @if(universeService.bestPlayerOfTheSeasonPodium(); as podium) {
 
     <div class="text-center relative z-10">
       <h2 class="text-6xl font-black text-white tracking-tighter mb-2">Gala de Premiação</h2>
@@ -1844,6 +1864,8 @@
       </div>
     </div>
     }
+    } <!-- FIM PODIUM IF -->
+    <!-- FIM DA SEÇÃO DE PRÊMIOS INDIVIDUAIS -->
 
     <!-- New Season Button -->
     <div class="text-center pt-8 relative z-10">
@@ -1853,36 +1875,7 @@
         <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
       </button>
     </div>
-  </div>
-  } @else {
-  <!-- Resumo da Temporada e Campeões (Fallback quando não há prêmios individuais) -->
-  <div class="w-full max-w-5xl mx-auto space-y-8 animate-fade-in py-12">
-    <!-- Mundial de Clubes Champion - BIG CARD -->
-    @if(worldCup(); as wc) {
-    @if(wc.knockoutPhase.champion; as champion) {
-    <div
-      class="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-yellow-900/40 via-gray-900 to-black border-2 border-yellow-500/30 p-10 shadow-2xl shadow-yellow-500/10 group">
-      <div
-        class="absolute inset-0 bg-gradient-to-tr from-yellow-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-80 transition-opacity">
-      </div>
-      <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-        <div class="text-center md:text-left">
-          <span
-            class="inline-block px-4 py-1.5 bg-yellow-500/20 text-yellow-400 text-xs font-black uppercase tracking-[0.2em] rounded-full mb-4 border border-yellow-500/30">
-            Campeão Mundial
-          </span>
-          <h3 class="text-6xl font-black text-white tracking-tighter mb-2">{{ champion.name }}</h3>
-          <p class="text-2xl text-gray-400 font-bold">O topo do mundo pertence a vocês!</p>
-        </div>
-        <div class="relative">
-          <div class="absolute inset-0 bg-yellow-500/30 blur-[60px] rounded-full"></div>
-          <i
-            class="fas fa-trophy text-9xl text-yellow-500 drop-shadow-[0_0_30px_rgba(234,179,8,0.8)] transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"></i>
-        </div>
-      </div>
-    </div>
-    }
-    }
+
 
     <!-- Regional/League Champions Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1923,8 +1916,7 @@
         <i class="fas fa-forward ml-4 text-sm group-hover:translate-x-2 transition-transform"></i>
       </button>
     </div>
-  </div>
-  }
+  </div> <!-- FIM GALA-BG -->
   } @else {
   <!-- Competition Cards Premium -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
@@ -2081,36 +2073,6 @@
     </button>
     }
   </div>
-
-  <!-- National Team Competitions Premium -->
-  @if (selectedContinent() === 'AFR') {
-  <div class="w-full max-w-6xl mt-8 pt-8 border-t border-white/10">
-    <button (click)="showAcn()" [disabled]="!isAcnAvailable()"
-      class="group relative overflow-hidden w-full bg-gradient-to-r from-orange-600 to-orange-700 border border-orange-500/30 p-8 rounded-2xl shadow-2xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-      <div
-        class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-50 transition-opacity">
-      </div>
-
-      <div class="relative z-10 text-center">
-        <h3 class="text-3xl font-black text-white mb-2 flex items-center justify-center gap-3">
-          <i class="fas fa-trophy text-yellow-400"></i>
-          Liga Africana das Nações
-        </h3>
-        <p class="text-orange-100 group-hover:text-white transition-colors">
-          A elite das seleções africanas em busca da glória
-        </p>
-        @if(!isAcnAvailable()) {
-        <p class="text-xs text-orange-200 mt-3 font-bold">
-          Disponível a cada 4 temporadas. Próxima edição na temporada {{ nextAcnSeason() }}
-        </p>
-        }
-      </div>
-    </button>
-  </div>
-  }
-
-
-
 
   <!-- Supercup / Recopa Premium -->
   @if (isRecopaAvailable() || isSupercupAvailable()) {
@@ -2521,7 +2483,7 @@
 @if(eur_cl(); as comp) {
 <app-international-competition-view [competition]="comp"
   [allContinentCompetitions]="selectedInternationalCompetitions()" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
+  (viewTeamDetails)="onViewTeamDetails($event)" (setManualResult)="onSetInternationalManualResult($event)" (setManualCupResult)="onSetInternationalManualCupResult($event)"
   (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
 } @else {
 <div class="text-center py-20 bg-gray-800 rounded-xl">
@@ -2532,7 +2494,7 @@
 @if(eur_el(); as comp) {
 <app-international-competition-view [competition]="comp"
   [allContinentCompetitions]="selectedInternationalCompetitions()" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
+  (viewTeamDetails)="onViewTeamDetails($event)" (setManualResult)="onSetInternationalManualResult($event)" (setManualCupResult)="onSetInternationalManualCupResult($event)"
   (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
 } @else {
 <div class="text-center py-20 bg-gray-800 rounded-xl">
@@ -2541,39 +2503,42 @@
 }
 }
 } @else {
-@if (selectedInternationalCompetitions().length > 0) {
-@for (comp of selectedInternationalCompetitions(); track comp.id) {
-<app-international-competition-view [competition]="comp" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
-  (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
-}
-} @else {
-<div class="text-center py-20 bg-gray-800 rounded-xl w-full">
-  <p class="text-gray-400 text-xl font-bold">Nenhuma competição encontrada para {{ continentName() }}.</p>
-  <p class="text-gray-500 mt-2">Verifique se a temporada foi inicializada corretamente.</p>
-</div>
-}
+  <!-- INTERNATIONAL LEAGUES -->
+  @if (view() === 'international_leagues' && selectedInternationalComp(); as comp) {
+  <app-international-competition-view [competition]="comp" [allContinentCompetitions]="continentCompetitions()"
+    (viewPlayerDetails)="onViewPlayerDetails($event)" (viewTeamDetails)="onViewTeamDetails($event)"
+    (setManualResult)="onSetInternationalManualResult($event)"
+    (setManualCupResult)="onSetInternationalManualCupResult($event)"
+    (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
+  }
 }
 
 } @else if (view() === 'club_world_cup') {
-@if (worldCup(); as wc) {
-<app-international-competition-view [competition]="wc" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
-  (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
-}
+  <!-- CLUB WORLD CUP -->
+  @if (view() === 'club_world_cup' && worldCup(); as wc) {
+  <app-international-competition-view [competition]="wc" (viewPlayerDetails)="onViewPlayerDetails($event)"
+    (viewTeamDetails)="onViewTeamDetails($event)" (setManualResult)="onSetInternationalManualResult($event)"
+    (setManualCupResult)="onSetInternationalManualCupResult($event)"
+    (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
+  }
 
 } @else if (view() === 'recopa') {
-@if (recopa(); as rec) {
-<app-international-competition-view [competition]="rec" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
-  (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
-}
+  <!-- RECOPA -->
+  @if (view() === 'recopa' && getInternationalComp('SAM_REC'); as rec) {
+  <app-international-competition-view [competition]="rec" (viewPlayerDetails)="onViewPlayerDetails($event)"
+    (viewTeamDetails)="onViewTeamDetails($event)" (setManualResult)="onSetInternationalManualResult($event)"
+    (setManualCupResult)="onSetInternationalManualCupResult($event)"
+    (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
+  }
+
 } @else if (view() === 'supercup') {
-@if (supercup(); as sup) {
-<app-international-competition-view [competition]="sup" (viewPlayerDetails)="onViewPlayerDetails($event)"
-  (viewTeamDetails)="onViewTeamDetails($event)"
-  (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
-}
+  <!-- SUPER CUP -->
+  @if (view() === 'supercup' && getInternationalComp('EUR_SUP'); as sup) {
+  <app-international-competition-view [competition]="sup" (viewPlayerDetails)="onViewPlayerDetails($event)"
+    (viewTeamDetails)="onViewTeamDetails($event)" (setManualResult)="onSetInternationalManualResult($event)"
+    (setManualCupResult)="onSetInternationalManualCupResult($event)"
+    (viewMatchDetails)="onViewCupMatchDetails($event)"></app-international-competition-view>
+  }
 
 
 

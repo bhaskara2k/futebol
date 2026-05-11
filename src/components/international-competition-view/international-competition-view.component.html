@@ -72,7 +72,7 @@
   <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
     <app-cup-view [cup]="competition().playoffPhase!" countryName="Playoffs de Qualificação" [isInternational]="true"
       (simulateMatch)="onSimulateCupMatch($event)" (simulateRound)="onSimulateCupRound($event)"
-      (viewMatchDetails)="onViewCupMatchDetails($event)">
+      (viewMatchDetails)="onViewCupMatchDetails($event)" (setManualResult)="setManualCupResult.emit($event)">
     </app-cup-view>
   </div>
   } @else if (activeTab() === 'league') {
@@ -92,7 +92,8 @@
     <div class="lg:col-span-2">
       <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
         <app-fixtures [fixtures]="competition().leaguePhase[0].fixtures[competition().currentLeagueRound] || []"
-          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)">
+          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)"
+          (setManualResult)="setManualResult.emit($event)">
         </app-fixtures>
       </div>
     </div>
@@ -114,7 +115,8 @@
       @for (group of competition().leaguePhase; track group.id) {
       <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
         <app-fixtures [fixtures]="group.fixtures[competition().currentLeagueRound] || []"
-          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)">
+          [round]="competition().currentLeagueRound + 1" status="ongoing" (simulateMatch)="onSimulateMatch($event)"
+          (setManualResult)="setManualResult.emit($event)">
         </app-fixtures>
       </div>
       }
@@ -129,7 +131,7 @@
   <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
     <app-cup-view [cup]="competition().knockoutPhase" [countryName]="competition().name" [isInternational]="true"
       (simulateMatch)="onSimulateCupMatch($event)" (simulateRound)="onSimulateCupRound($event)"
-      (viewMatchDetails)="onViewCupMatchDetails($event)">
+      (viewMatchDetails)="onViewCupMatchDetails($event)" (setManualResult)="setManualCupResult.emit($event)">
     </app-cup-view>
   </div>
   } @else if (activeTab() === 'stats') {

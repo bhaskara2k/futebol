@@ -203,7 +203,7 @@ import { ApiService, HealthResponse, StatsResponse } from '../services/api.servi
       margin-top: 0;
       margin-bottom: 1.5rem;
       display: flex;
-      items-center;
+      align-items: center;
       gap: 0.5rem;
     }
 

@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 export interface MatchResultData {
-  homeTeam: { name: string; id: string };
-  awayTeam: { name: string; id: string };
+  homeTeam: { name: string; id: string; logoUrl?: string };
+  awayTeam: { name: string; id: string; logoUrl?: string };
   homeScore: number;
   awayScore: number;
   leg?: number;

@@ -89,6 +89,75 @@ export class FirebasePersistenceService {
       };
       await setDoc(saveRef, { metadata });
 
+      // Helper para simplificar objetos de jogadores em históricos (redução de payload)
+      const simplifyPlayer = (p: any) => {
+        if (!p) return null;
+        return {
+          id: p.id,
+          name: p.name,
+          overall: p.overall,
+          nationalityId: p.nationalityId
+        };
+      };
+
+      // Helper para simplificar objetos de times em históricos
+      const simplifyTeam = (t: any) => {
+        if (!t) return null;
+        return {
+          id: t.id,
+          teamName: t.teamName,
+          logoUrl: t.logoUrl
+        };
+      };
+
+      // Helper para limpar registros de histórico (SeasonRecord / InternationalSeasonRecord)
+      const cleanHistory = (history: any[]) => {
+        if (!history || !Array.isArray(history)) return [];
+        return history.map(record => {
+          const newRecord = { ...record };
+          
+          // Se for SeasonRecord (Nacional), precisamos limpar cada divisão e copa
+          const compKeys = ['division1', 'division2', 'division3', 'division4', 'division5', 'division6', 'division7', 'division8', 'cup', 'leagueCup', 'supercup'];
+          compKeys.forEach(key => {
+            if (newRecord[key]) {
+              const comp = { ...newRecord[key] };
+              if (comp.champion) comp.champion = simplifyTeam(comp.champion);
+              if (comp.runnerUp) comp.runnerUp = simplifyTeam(comp.runnerUp);
+              
+              ['topScorer', 'topAssister', 'topMotm'].forEach(pKey => {
+                if (comp[pKey] && comp[pKey].player) {
+                  comp[pKey] = { ...comp[pKey], player: simplifyPlayer(comp[pKey].player) };
+                }
+              });
+              newRecord[key] = comp;
+            }
+          });
+
+          // Se for InternationalSeasonRecord, os campos são diretos
+          if (newRecord.champion && !newRecord.division1) newRecord.champion = simplifyTeam(newRecord.champion);
+          if (newRecord.runnerUp && !newRecord.division1) newRecord.runnerUp = simplifyTeam(newRecord.runnerUp);
+          
+          ['topScorer', 'topAssister', 'topMotm', 'bestPlayer', 'goldenGlove', 'revelation'].forEach(key => {
+            if (newRecord[key] && newRecord[key].player) {
+              newRecord[key] = {
+                ...newRecord[key],
+                player: simplifyPlayer(newRecord[key].player)
+              };
+            }
+          });
+
+          // Limpar Time da Temporada
+          if (newRecord.teamOfTheSeason && Array.isArray(newRecord.teamOfTheSeason)) {
+            newRecord.teamOfTheSeason = newRecord.teamOfTheSeason.map((pr: any) => ({
+              ...pr,
+              player: simplifyPlayer(pr.player)
+            }));
+          }
+
+          return newRecord;
+        });
+      };
+
       // 2. Salvar Times (Subcoleção)
       await this.saveCollectionChunked(
         collection(db, this.SAVES_COLLECTION, saveId, 'teams'),
@@ -107,7 +176,10 @@ export class FirebasePersistenceService {
         collection(db, this.SAVES_COLLECTION, saveId, 'leagues'),
         state.leagues,
         (l: League) => {
-          const leagueData: any = { ...l };
+          const leagueData: any = { 
+            ...l,
+            history: cleanHistory(l.history) // LIMPEZA CRÍTICA DE HISTÓRICO
+          };
           
           leagueData.divisions = l.divisions.map(d => {
             const fixturesObj: { [key: string]: any } = {};
@@ -147,6 +219,7 @@ export class FirebasePersistenceService {
              const data: any = {
                 ...c,
                 teams: c.teams.map(t => t.id),
+                history: cleanHistory(c.history), // LIMPEZA CRÍTICA DE HISTÓRICO
                 leaguePhase: c.leaguePhase?.map(d => {
                     const fixturesObj: { [key: string]: any } = {};
                     d.fixtures.forEach((roundMatches, idx) => {
@@ -191,7 +264,7 @@ export class FirebasePersistenceService {
    * Helper para salvar coleções grandes em lotes (Firestore limit: 500 ops)
    */
   private async saveCollectionChunked(collRef: any, items: any[], transform: (item: any, idx: number) => any): Promise<void> {
-    const CHUNK_SIZE = 50; // Reduzido para evitar limite de payload de 10MB por lote
+    const CHUNK_SIZE = 10; // Reduzido drasticamente para evitar limite de payload de 10MB por lote
     for (let i = 0; i < items.length; i += CHUNK_SIZE) {
       const chunk = items.slice(i, i + CHUNK_SIZE);
       const batch = writeBatch(db);

@@ -312,11 +312,11 @@ export class SimulationService {
 
 
   public simulateSingleCupLeg(match: CupMatch, roundName: string, leg: 1 | 2, context: League | InternationalCompetition, allTeamsInContext: Team[], addTrophyCallback: (team: Team, trophyName: string, trophyType: Trophy['type']) => void, captureHistoryCallback: (comp: any) => void, onFinalCallback: () => void, cupType?: 'main' | 'league' | 'supercup') {
-    const homeTeam = allTeamsInContext.find(t => t.id === match.homeTeam.id)!;
-    const awayTeam = allTeamsInContext.find(t => t.id === match.awayTeam.id)!;
+    const homeTeam = (match.homeTeam && typeof match.homeTeam === 'object' && match.homeTeam.id) ? allTeamsInContext.find(t => t.id === match.homeTeam.id) : null;
+    const awayTeam = (match.awayTeam && typeof match.awayTeam === 'object' && match.awayTeam.id) ? allTeamsInContext.find(t => t.id === match.awayTeam.id) : null;
 
     if (!homeTeam || !awayTeam) {
-      console.error('Could not find teams for cup leg simulation', match);
+      console.warn('⚠️ Simulation skipped: One or both teams are not ready for this cup leg.', match.id);
       return;
     }
 

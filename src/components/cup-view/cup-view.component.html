@@ -62,8 +62,8 @@
             <!-- Home Team -->
             <div class="flex-1 text-right pr-4 flex items-center justify-end gap-3">
               <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight"
-                [title]="match.homeTeam.teamName">{{
-                match.homeTeam.teamName }}</span>
+                [title]="match.homeTeam?.teamName || 'TBD'">{{
+                match.homeTeam?.teamName || 'A DEFINIR' }}</span>
               <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-xl border border-white/5 p-1.5 shadow-inner backdrop-blur-sm">
                 <img [src]="universeService.getTeamCrest(match.homeTeam)" 
                   class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
@@ -106,7 +106,7 @@
 
             <!-- Away Team -->
             <div class="flex-1 text-left pl-4 flex items-center justify-start gap-3">
-              @if (isInternational()) {
+              @if (isInternational() && match.awayTeam) {
               <img [src]="universeService.getFlagUrl(match.awayTeam.countryId)" [alt]="match.awayTeam.countryId"
                 class="w-4 h-3 rounded-sm object-cover shadow-sm opacity-90 group-hover:opacity-100 transition-opacity">
               }
@@ -116,8 +116,8 @@
                   (error)="tryPngFallback($event)">
               </div>
               <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight"
-                [title]="match.awayTeam.teamName">{{
-                match.awayTeam.teamName }}</span>
+                [title]="match.awayTeam?.teamName || 'TBD'">{{
+                match.awayTeam?.teamName || 'A DEFINIR' }}</span>
             </div>
           </div>
 
@@ -147,8 +147,8 @@
             <div class="flex items-center justify-center w-full">
               <!-- Home -->
               <div class="flex-1 text-right pr-4 flex items-center justify-end gap-3">
-                <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight" [title]="match.homeTeam.teamName">{{
-                  match.homeTeam.teamName }}</span>
+                <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight" [title]="match.homeTeam?.teamName || 'TBD'">{{
+                  match.homeTeam?.teamName || 'A DEFINIR' }}</span>
                 <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-xl border border-white/5 p-1.5 shadow-inner backdrop-blur-sm">
                   <img [src]="universeService.getTeamCrest(match.homeTeam)" 
                     class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
@@ -188,8 +188,8 @@
                     class="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-300"
                     (error)="tryPngFallback($event)">
                 </div>
-                <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight" [title]="match.awayTeam.teamName">{{
-                  match.awayTeam.teamName }}</span>
+                <span class="font-black text-white text-base md:text-lg tracking-tight leading-tight" [title]="match.awayTeam?.teamName || 'TBD'">{{
+                  match.awayTeam?.teamName || 'A DEFINIR' }}</span>
               </div>
             </div>
 

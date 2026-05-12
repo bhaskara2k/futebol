@@ -110,7 +110,7 @@ export const southAmericaTeams = [
   { teamName: "IGUATU", countryId: "BRA", overall: 55, players: [] },
   { teamName: "TREM", countryId: "BRA", overall: 50, players: [] },
   { teamName: "PORTO VELHO", countryId: "BRA", overall: 55, players: [] },
-  { teamName: "AMAZONAS", countryId: "BRA", overall: 50, players: [] },
+  { teamName: "CLUBE LAGUNA", countryId: "BRA", overall: 50, players: [] },
   { teamName: "MANAUS", countryId: "BRA", overall: 51, players: [] },
   { teamName: "SÃO RAIMUNDO-AM", countryId: "BRA", overall: 56, players: [] },
   { teamName: "NACIONAL-AM", countryId: "BRA", overall: 53, players: [] },

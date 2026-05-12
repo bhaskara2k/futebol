@@ -64,10 +64,11 @@ export class SimulationService {
     match.awayScore = awayGoals;
     match.played = true;
 
-    // Events (Goals, MOTM)
-    this.assignGoalEvents(match.events, homeTeam, homeGoals, 'stats', countryId);
-    this.assignGoalEvents(match.events, awayTeam, awayGoals, 'stats', countryId);
-    this.assignMotm(match.events, homeTeam, awayTeam, 'stats', countryId);
+    // Nota: Eventos de jogadores (gols, MOTM) desativados 
+    // para focar no sistema de Overall Base puro.
+    // this.assignGoalEvents(match.events, homeTeam, homeGoals, 'stats', countryId);
+    // this.assignGoalEvents(match.events, awayTeam, awayGoals, 'stats', countryId);
+    // this.assignMotm(match.events, homeTeam, awayTeam, 'stats', countryId);
 
     // History
     this.universeService._recordHistoricMatch(
@@ -138,9 +139,11 @@ export class SimulationService {
     match.awayScore = awayGoals;
     match.played = true;
 
-    this.assignGoalEvents(match.events, homeTeamInDivision, homeGoals, statType, competitionContextId);
-    this.assignGoalEvents(match.events, awayTeamInDivision, awayGoals, statType, competitionContextId);
-    this.assignMotm(match.events, homeTeamInDivision, awayTeamInDivision, statType, competitionContextId);
+    // Nota: Atribuição de eventos de jogadores (gols, MOTM) desativada 
+    // para focar no sistema de Overall Base puro.
+    // this.assignGoalEvents(match.events, homeTeamInDivision, homeGoals, statType, competitionContextId);
+    // this.assignGoalEvents(match.events, awayTeamInDivision, awayGoals, statType, competitionContextId);
+    // this.assignMotm(match.events, homeTeamInDivision, awayTeamInDivision, statType, competitionContextId);
 
     const competitionName = this.universeService.TROPHY_NAMES[competitionId] || match.divisionName || 'Internacional';
     this.universeService._recordHistoricMatch(

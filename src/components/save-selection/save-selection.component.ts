@@ -358,15 +358,8 @@ export class SaveSelectionComponent implements OnInit {
     }
 
     async selectSave(saveId: string) {
-        try {
-            const state = await this.firebaseService.loadSave(saveId);
-            if (state) {
-                // TODO: Injetar estado no UniverseService
-                this.saveSelected.emit(saveId);
-            }
-        } catch (error) {
-            console.error('Erro ao selecionar save:', error);
-        }
+        // Emitir imediatamente para que o pai (AppComponent) possa mostrar o loading
+        this.saveSelected.emit(saveId);
     }
 
     async createNewSave() {

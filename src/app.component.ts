@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, effect } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, effect, ChangeDetectorRef } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { UniverseService } from './services/universe.service';
@@ -98,6 +98,7 @@ export class AppComponent implements OnInit {
   sqliteService = inject(SqlitePersistenceService);
   titleService = inject(Title);
   meta = inject(Meta);
+  cdr = inject(ChangeDetectorRef);
 
 
   // --- SIGNALS STATE ---
@@ -105,22 +106,39 @@ export class AppComponent implements OnInit {
   isGameLoaded = signal<boolean>(false); // Controla se um save foi aberto ou novo jogo iniciado
 
   handleSaveSelected(saveId: string) {
-    this.firebaseService.loadSave(saveId).then(state => {
-      if (state) {
-        // Definir o ID do save no lifecycle
-        this.lifecycle.setSaveId(saveId);
-        
-        // Injetar o estado no Universo
-        this.universeService.loadFromFirebaseState(state);
-        
-        // Injetar o estado na UI
-        this.isGameLoaded.set(true);
-        this.isSetupComplete.set(true);
-        
-        // Sincronizar UI
-        this.lifecycle.syncStateAfterLoad();
-      }
-    });
+    this.isLoading.set(true);
+    this.loadStatus.set('loading');
+    this.cdr.detectChanges(); // Forçar renderização imediata
+    
+    // Pequeno delay para garantir que o Angular renderize o overlay de loading
+    setTimeout(() => {
+      this.firebaseService.loadSave(saveId).then(async state => {
+        if (state) {
+          // Definir o ID do save no lifecycle
+          this.lifecycle.setSaveId(saveId);
+          
+          // Injetar o estado no Universo
+          this.universeService.loadFromFirebaseState(state);
+          
+          // Injetar o estado na UI
+          this.isGameLoaded.set(true);
+          this.isSetupComplete.set(true);
+          
+          // Sincronizar UI
+          this.lifecycle.syncStateAfterLoad();
+          
+          this.loadStatus.set('success');
+          await new Promise(r => setTimeout(r, 1000));
+          this.isLoading.set(false);
+          this.loadStatus.set('idle');
+        } else {
+          this.loadStatus.set('error');
+          await new Promise(r => setTimeout(r, 2000));
+          this.isLoading.set(false);
+          this.loadStatus.set('idle');
+        }
+      });
+    }, 50);
   }
 
   handleStartNewGame() {
@@ -161,7 +179,9 @@ export class AppComponent implements OnInit {
   showSaveSelection = signal(false); // NOVO: Controla modal de saves
   isProcessingSeason = signal(false);
   isSaving = signal(false);
+  isLoading = signal(false);
   saveStatus = signal<'idle' | 'saving' | 'success' | 'error'>('idle');
+  loadStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
   isSeasonSummaryVisible = signal(false); // Gatekeeper para a tela de gala/resumo
 
   private nationalityMap = new Map<string, string>(NATIONALITIES.map(n => [n.code3, n.code2]));
@@ -176,87 +196,72 @@ export class AppComponent implements OnInit {
     }
     this.titleService.setTitle('Futebol Universe');
 
-    // Inicializar banco de dados/API
-    await this.sqliteService.initDatabase();
+    this.isLoading.set(true);
+    this.loadStatus.set('loading');
 
-    const setupDone = typeof window !== 'undefined' && localStorage.getItem('futsal_setup_complete') === 'true';
-    this.isSetupComplete.set(setupDone);
-
-    if (setupDone) {
-      console.log('🏁 Setup complete detected. Carregando estado do jogo...');
+    setTimeout(async () => {
       try {
-        // ✅ PRIORIDADE 1: Carregar do sistema de saves por slots (/api/saves)
-        // Este sistema armazena o estado COMPLETO com todos os stats corretos
-        const saves = await this.sqliteService.listSaves();
+        // Inicializar banco de dados/API
+        await this.sqliteService.initDatabase();
 
-        if (saves && saves.length > 0) {
-          // Pega o save mais recente (já vem ordenado por updated_at DESC)
-          const latestSave = saves[0];
-          console.log(`📥 Carregando save mais recente: "${latestSave.name}" (ID: ${latestSave.id}, Temporada: ${latestSave.season})`);
+        const setupDone = typeof window !== 'undefined' && localStorage.getItem('futsal_setup_complete') === 'true';
+        this.isSetupComplete.set(setupDone);
 
-          const saveData = await this.sqliteService.loadSave(latestSave.id);
+        if (setupDone) {
+          console.log('🏁 Setup complete detected. Carregando estado do jogo...');
+          
+          // ✅ PRIORIDADE 1: Carregar do sistema de saves por slots (/api/saves)
+          const saves = await this.sqliteService.listSaves();
 
-          if (saveData) {
-            this.gameStateService.importGameState(saveData);
+          if (saves && saves.length > 0) {
+            const latestSave = saves[0];
+            const saveData = await this.sqliteService.loadSave(latestSave.id);
 
-            // Verificação extra: Se importou times mas não tem ligas, gera as ligas agora
-            if (this.universeService.leagues().length === 0 && this.universeService.teams().length > 0) {
-              console.warn('⚠️ Slot de save carregado sem ligas. Gerando ligas...');
-              this.universeService.setupLeagues();
-            }
-
-            this.activeSaveId.set(latestSave.id); // Marca o save como ativo para futuras gravações
-            this.lifecycle.syncStateAfterLoad();
-            console.log(`✅ Save "${latestSave.name}" carregado com sucesso! (${saves.length} save(s) disponível(is))`);
-          } else {
-            throw new Error(`Dados do save ID ${latestSave.id} retornaram vazios.`);
-          }
-
-        } else {
-          // ✅ FALLBACK: Sistema antigo de snapshots por temporada
-          console.warn('⚠️ Nenhum save encontrado no sistema de slots. Tentando sistema legado de snapshots...');
-          const latestSeason = await this.sqliteService.getLatestSeason();
-
-          if (latestSeason > 0) {
-            console.log(`📥 [Legado] Carregando temporada ${latestSeason}...`);
-            const seasonData = await this.sqliteService.loadSeasonState(latestSeason);
-
-            const hasTeams = (seasonData.teamsData?.length > 0 || seasonData.teams?.length > 0);
-            const hasLeagues = (seasonData.leaguesData?.length > 0 || seasonData.leagues?.length > 0);
-
-            if (seasonData && (hasTeams || hasLeagues)) {
-              this.gameStateService.importGameState(seasonData);
-              
-              // Verificação extra: Se importou times mas não tem ligas, gera as ligas agora
+            if (saveData) {
+              this.gameStateService.importGameState(saveData);
               if (this.universeService.leagues().length === 0 && this.universeService.teams().length > 0) {
-                console.warn('⚠️ Save carregado sem ligas. Gerando ligas a partir dos times do save...');
                 this.universeService.setupLeagues();
               }
-              
+              this.activeSaveId.set(latestSave.id);
               this.lifecycle.syncStateAfterLoad();
-              console.log(`✅ [Legado] Temporada ${latestSeason} carregada via snapshot.`);
-            } else {
-              console.warn(`⚠️ Temporada ${latestSeason} sem dados. Inicializando universo básico.`);
-              this.universeService.initializeTeams();
-              this.universeService.setupLeagues();
             }
           } else {
-            console.warn('⚠️ Nenhum dado salvo encontrado. Inicializando universo básico.');
-            this.universeService.initializeTeams();
-            this.universeService.setupLeagues();
-            this.universeService.setupInternationalCompetitions();
+            // ✅ FALLBACK: Sistema antigo de snapshots por temporada
+            const latestSeason = await this.sqliteService.getLatestSeason();
+            if (latestSeason > 0) {
+              const seasonData = await this.sqliteService.loadSeasonState(latestSeason);
+              if (seasonData) {
+                this.gameStateService.importGameState(seasonData);
+                if (this.universeService.leagues().length === 0 && this.universeService.teams().length > 0) {
+                  this.universeService.setupLeagues();
+                }
+                this.lifecycle.syncStateAfterLoad();
+              }
+            } else {
+              this.universeService.initializeTeams();
+              this.universeService.setupLeagues();
+              this.universeService.setupInternationalCompetitions();
+            }
           }
+        } else {
+          await this.universeService.initializeUniverse();
         }
+        
+        this.loadStatus.set('success');
+        await new Promise(r => setTimeout(r, 800));
       } catch (error) {
         console.error('❌ Erro ao carregar jogo na inicialização:', error);
-        // Fallback para não deixar a tela em branco
+        this.loadStatus.set('error');
+        await new Promise(r => setTimeout(r, 1500));
+        // Fallback
         this.universeService.initializeTeams();
         this.universeService.setupLeagues();
         this.universeService.setupInternationalCompetitions();
+      } finally {
+        this.isLoading.set(false);
+        this.loadStatus.set('idle');
       }
-    } else {
-      await this.universeService.initializeUniverse();
-    }
+    }, 50);
   }
 
   forceReset() {
@@ -1591,14 +1596,27 @@ export class AppComponent implements OnInit {
   }
 
   async loadGame(gameState: any): Promise<void> {
-    try {
-      this.gameStateService.importGameState(gameState);
-      alert('✅ Jogo carregado com sucesso!');
-      this.showSaveMenu.set(false);
-    } catch (error: any) {
-      console.error('Erro ao carregar:', error);
-      alert(`❌ Erro ao carregar o jogo.\n\n${error?.message || 'Erro desconhecido'}`);
-    }
+    this.isLoading.set(true);
+    this.loadStatus.set('loading');
+    this.cdr.detectChanges(); // Forçar renderização imediata
+    
+    setTimeout(async () => {
+      try {
+        this.gameStateService.importGameState(gameState);
+        this.lifecycle.syncStateAfterLoad();
+        this.showSaveMenu.set(false);
+        
+        this.loadStatus.set('success');
+        await new Promise(r => setTimeout(r, 1000));
+      } catch (error: any) {
+        console.error('Erro ao carregar:', error);
+        this.loadStatus.set('error');
+        await new Promise(r => setTimeout(r, 2000));
+      } finally {
+        this.isLoading.set(false);
+        this.loadStatus.set('idle');
+      }
+    }, 50);
   }
 
 
@@ -1833,25 +1851,38 @@ export class AppComponent implements OnInit {
   // ============================================================================
 
   async onSaveSelected(saveId: string) {
+    this.isLoading.set(true);
+    this.loadStatus.set('loading');
+    this.cdr.detectChanges(); // Forçar renderização imediata
     console.log('💾 Save selecionado:', saveId);
 
-    try {
-      // Carregar a temporada salva via SqlitePersistenceService
-      const season = parseInt(saveId, 10) || 1;
-      const seasonData = await this.sqliteService.loadSeasonState(season);
+    setTimeout(async () => {
+      try {
+        // Carregar a temporada salva via SqlitePersistenceService
+        const season = parseInt(saveId, 10) || 1;
+        const seasonData = await this.sqliteService.loadSeasonState(season);
 
-      if (seasonData) {
-        this.gameStateService.importGameState(seasonData);
-        this.isSetupComplete.set(true);
-        console.log(`✅ Season ${season} carregada do SQLite.`);
-      } else {
-        throw new Error(`Season ${season} não encontrada no SQLite`);
+        if (seasonData) {
+          this.gameStateService.importGameState(seasonData);
+          this.isGameLoaded.set(true); // ✅ ADICIONADO: Marcar como carregado
+          this.isSetupComplete.set(true);
+          this.lifecycle.syncStateAfterLoad();
+          console.log(`✅ Season ${season} carregada do SQLite.`);
+          
+          this.loadStatus.set('success');
+          await new Promise(r => setTimeout(r, 1000));
+        } else {
+          throw new Error(`Season ${season} não encontrada no SQLite`);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar save:', error);
+        this.loadStatus.set('error');
+        await new Promise(r => setTimeout(r, 2000));
+      } finally {
+        this.isLoading.set(false);
+        this.loadStatus.set('idle');
       }
-
-    } catch (error) {
-      console.error('❌ Erro ao carregar save:', error);
-      alert('Erro ao carregar save. Veja o console.');
-    }
+    }, 50);
   }
 
   async onSaveCreated(saveId: string) {
@@ -2034,19 +2065,33 @@ export class AppComponent implements OnInit {
    * Carrega um save específico do Firebase
    */
   async loadSaveById(id: string) {
-    try {
-      const state = await this.firebaseService.loadSave(id);
-      if (state) {
-        this.lifecycle.setSaveId(id);
-        this.universeService.loadFromFirebaseState(state);
-        this.lifecycle.syncStateAfterLoad();
-        this.changeView('main_menu');
-        alert('Save carregado com sucesso!');
+    this.isLoading.set(true);
+    this.loadStatus.set('loading');
+    this.cdr.detectChanges(); // Forçar renderização imediata
+    
+    setTimeout(async () => {
+      try {
+        const state = await this.firebaseService.loadSave(id);
+        if (state) {
+          this.lifecycle.setSaveId(id);
+          this.universeService.loadFromFirebaseState(state);
+          this.isGameLoaded.set(true); // ✅ ADICIONADO
+          this.isSetupComplete.set(true);
+          this.lifecycle.syncStateAfterLoad();
+          this.changeView('main_menu');
+          
+          this.loadStatus.set('success');
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar save do Firebase:', error);
+        this.loadStatus.set('error');
+        await new Promise(r => setTimeout(r, 2000));
+      } finally {
+        this.isLoading.set(false);
+        this.loadStatus.set('idle');
       }
-    } catch (error) {
-      console.error('❌ Erro ao carregar save do Firebase:', error);
-      alert('Erro ao carregar save.');
-    }
+    }, 50);
   }
 
   /**

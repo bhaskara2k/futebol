@@ -52,11 +52,11 @@ export class CompetitionService {
   }
 
   public updatePlayerRankings(league: League): void {
+    // Rankings de jogadores desativados no sistema de Overall Base puro.
     league.divisions.forEach(division => {
-      const allPlayers: Player[] = division.teams.flatMap(t => t.players);
-      division.topScorers = [...allPlayers].sort((a, b) => b.stats.goals - a.stats.goals).slice(0, 10);
-      division.topAssists = [...allPlayers].sort((a, b) => b.stats.assists - a.stats.assists).slice(0, 10);
-      division.topMotm = [...allPlayers].sort((a, b) => (b.stats.motm || 0) - (a.stats.motm || 0)).slice(0, 10);
+      division.topScorers = [];
+      division.topAssists = [];
+      division.topMotm = [];
     });
   }
 

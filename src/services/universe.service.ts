@@ -711,7 +711,7 @@ export class UniverseService {
           teamName: teamName,
           countryId: countryId,
           budget: teamData.budget !== undefined ? teamData.budget : 100_000_000,
-          players: players,
+          players: [],
           youthAcademy: [],
           overall: teamOverall,
           overallVariation: isHydratedData ? (teamData.overallVariation || 0) : (teamOverall - rawBaseOverall),
@@ -728,64 +728,8 @@ export class UniverseService {
         return team;
       });
 
-    // We only want to auto-populate youth academies if this is NOT hydrated data (i.e., a fresh start)
-    if (!isHydratedData) {
-      allTeams.forEach(team => {
-        if (team.countryId === 'AAA' || team.countryId === 'BBB' || team.countryId === 'EUR' || team.countryId === 'SAM') {
-          return;
-        }
-        const youthPlayerCount = 5;
-        team.youthAcademy = [];
-        for (let i = 0; i < youthPlayerCount; i++) {
-          const isGoalkeeper = i === 0;
-          const youthPlayer = this.generateYouthPlayer(team.countryId, isGoalkeeper);
-          team.youthAcademy.push(youthPlayer);
-        }
-      });
-    }
-
+    // População de base desativada (Modo Overall Base puro)
     this.teams.set(allTeams);
-  }
-
-  private generateYouthPlayer(teamCountryId: string, isGoalkeeper: boolean = false): Player {
-    let name = '';
-    let attempts = 0;
-    const nationalityId = teamCountryId;
-    const nameData = NAMES_BY_NATIONALITY[nationalityId] || NAMES_BY_NATIONALITY['BRA'];
-
-    do {
-      const firstName = nameData.first[Math.floor(Math.random() * nameData.first.length)];
-      const lastName = nameData.last[Math.floor(Math.random() * nameData.last.length)];
-      name = `${firstName} ${lastName}`.toUpperCase();
-      attempts++;
-    } while (this.usedPlayerNames.has(name) && attempts < 50);
-
-    this.usedPlayerNames.add(name);
-
-    const overall = this.getRandomValue(50, 55);
-    const marketValue = this.calculateMarketValue(overall);
-
-    const number = isGoalkeeper ? this.getRandomValue(23, 30) : this.getRandomValue(31, 99);
-
-    return {
-      id: `youth-${Date.now()}-${Math.random()}`,
-      isGoalkeeper,
-      name,
-      number,
-      nationalityId: nationalityId,
-      age: this.getRandomValue(16, 18),
-      overall,
-      marketValue,
-      contractYears: 0, // No professional contract
-      stats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      cupStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      internationalStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      worldCupStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      worldCupQualifierStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      youthStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
-      careerStats: {},
-      overallHistory: [],
-    };
   }
 
   public setupLeagues(assignments?: Map<string, string[]>): void {
@@ -2297,136 +2241,15 @@ export class UniverseService {
   }
 
   private calculateTeamOverall(players: Player[]): number {
-    if (players.length === 0) return 60;
-    return Math.round(players.reduce((acc, p) => acc + p.overall, 0) / players.length);
+    return 60; // Legado: não é mais usado, o overall é base agora.
   }
 
   executeTransfer(playerId: string, buyingTeamId: string): { success: boolean, message: string } {
-    let sellingTeam: Team | undefined;
-    let player: Player | undefined;
-
-    for (const team of this.teams()) {
-      const p = team.players.find(p => p.id === playerId);
-      if (p) {
-        sellingTeam = team;
-        player = p;
-        break;
-      }
-    }
-
-    const buyingTeam = this.teams().find(t => t.id === buyingTeamId);
-
-    if (!buyingTeam || !sellingTeam || !player) {
-      return { success: false, message: "Erro: Time ou jogador não encontrado." };
-    }
-
-    if (buyingTeam.id === sellingTeam.id) {
-      return { success: false, message: "Não é possível transferir um jogador para o mesmo time." };
-    }
-
-    let transferCost = 0;
-    if (player.contractYears <= 1) {
-      transferCost = 0;
-    } else if (player.contractYears === 2) {
-      transferCost = player.marketValue;
-    } else { // 3 or more
-      transferCost = player.marketValue * 1.5;
-    }
-
-    if (sellingTeam.teamName === 'SEM EQUIPE') {
-      transferCost = 0;
-    }
-
-    if (buyingTeam.budget < transferCost) {
-      return { success: false, message: `Orçamento insuficiente. Custo: ${transferCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.` };
-    }
-
-    const transferRecord: TransferRecord = {
-      season: this.season(),
-      playerName: player.name,
-      playerOverall: player.overall,
-      playerNationalityId: player.nationalityId,
-      fromTeamName: sellingTeam.teamName,
-      fromTeamCountryId: sellingTeam.countryId,
-      toTeamName: buyingTeam.teamName,
-      toTeamCountryId: buyingTeam.countryId,
-      fee: transferCost,
-    };
-    this.transferHistory.update(history => [...history, transferRecord]);
-
-    this.teams.update(currentTeams => {
-      return currentTeams.map(t => {
-        if (t.id === buyingTeamId) {
-          const movedPlayer = {
-            ...player!,
-            contractYears: (sellingTeam!.teamName === 'SEM EQUIPE' ? 3 : player!.contractYears),
-            clubHistory: [...(player!.clubHistory || []), { season: this.season(), teamId: buyingTeam.id, teamName: buyingTeam.teamName }]
-          };
-
-          const newPlayers = [...t.players, movedPlayer];
-
-          // Re-check goalkeeper status
-          if (movedPlayer.isGoalkeeper) {
-            newPlayers.forEach(p => {
-              if (p.isGoalkeeper && p.id !== movedPlayer.id) p.isGoalkeeper = false;
-            });
-          }
-
-          return {
-            ...t,
-            players: newPlayers,
-            budget: t.budget - transferCost
-          };
-        }
-        if (t.id === sellingTeam!.id) {
-          const newPlayers = t.players.filter(p => p.id !== playerId);
-          return {
-            ...t,
-            players: newPlayers,
-            budget: t.budget + transferCost
-          };
-        }
-        return t;
-      });
-    });
-
-    this.syncLeagues();
-
-    return { success: true, message: `${player.name} transferido para ${buyingTeam.teamName} com sucesso!` };
+    return { success: false, message: "Sistema de transferências individuais desativado (Modo Overall Base)." };
   }
 
   updatePlayerDetails(updatedPlayer: Player, teamId: string): void {
-    this.teams.update(currentTeams => {
-      return currentTeams.map(team => {
-        if (team.id !== teamId) return team;
-
-        const playerIndex = team.players.findIndex(p => p.id === updatedPlayer.id);
-        if (playerIndex === -1) return team;
-
-        const originalPlayer = team.players[playerIndex];
-        const playerWithNational = { ...updatedPlayer };
-        if (originalPlayer.nationalTeamOverrides) {
-          playerWithNational.nationalTeamOverrides = originalPlayer.nationalTeamOverrides;
-        }
-
-        const newPlayers = [...team.players];
-        if (playerWithNational.isGoalkeeper && !originalPlayer.isGoalkeeper) {
-          newPlayers.forEach(p => {
-            if (p.isGoalkeeper && p.id !== playerWithNational.id) {
-              p.isGoalkeeper = false;
-            }
-          });
-        }
-        newPlayers[playerIndex] = playerWithNational;
-
-        return {
-          ...team,
-          players: newPlayers
-        };
-      });
-    });
-
-    this.syncLeagues();
+    // Desativado
   }
 
   updateTeamDetails(updatedTeam: Team): void {
@@ -2475,173 +2298,28 @@ export class UniverseService {
   }
 
   renewPlayerContract(playerId: string, teamId: string, newLength: number): void {
-    this.teams.update(currentTeams => {
-      return currentTeams.map(team => {
-        if (team.id !== teamId) return team;
-        const newPlayers = team.players.map(p => {
-          if (p.id === playerId) {
-            return { ...p, contractYears: newLength };
-          }
-          return p;
-        });
-        return { ...team, players: newPlayers };
-      });
-    });
-
-    this.syncLeagues();
+    // Desativado
   }
 
   terminatePlayerContract(playerId: string, teamId: string): void {
-    const freeAgentTeam = this.teams().find(t => t.teamName === 'SEM EQUIPE');
-    if (!freeAgentTeam) return;
-
-    this.teams.update(currentTeams => {
-      const playerToMove = currentTeams.find(t => t.id === teamId)?.players.find(p => p.id === playerId);
-      if (!playerToMove) return currentTeams;
-
-      let penalty = 0;
-      if (playerToMove.contractYears > 1) {
-        penalty = playerToMove.marketValue * 0.25;
-      }
-
-      const movedPlayer = {
-        ...playerToMove,
-        contractYears: 1,
-        clubHistory: [...(playerToMove.clubHistory || []), { season: this.season(), teamId: freeAgentTeam.id, teamName: freeAgentTeam.teamName }]
-      };
-
-      return currentTeams.map(t => {
-        if (t.id === teamId) {
-          const newPlayers = t.players.filter(p => p.id !== playerId);
-          // Auto-promote goalkeeper if abandoned
-          if (playerToMove.isGoalkeeper && !newPlayers.some(p => p.isGoalkeeper) && newPlayers.length > 0) {
-            const sorted = [...newPlayers].sort((a, b) => b.overall - a.overall);
-            const gkIdx = newPlayers.findIndex(p => p.id === sorted[0].id);
-            if (gkIdx > -1) newPlayers[gkIdx] = { ...newPlayers[gkIdx], isGoalkeeper: true };
-          }
-          return { ...t, budget: t.budget - penalty, players: newPlayers };
-        }
-        if (t.id === freeAgentTeam.id) {
-          return { ...t, players: [...t.players, movedPlayer] };
-        }
-        return t;
-      });
-    });
-
-    this.syncLeagues();
+    // Desativado
   }
 
   retirePlayer(playerId: string, teamId: string): void {
-    const retiredTeam = this.teams().find(t => t.teamName === 'APOSENTADOS');
-    if (!retiredTeam) return;
-
-    this.teams.update(currentTeams => {
-      const playerToRetire = currentTeams.find(t => t.id === teamId)?.players.find(p => p.id === playerId);
-      if (!playerToRetire) return currentTeams;
-
-      return currentTeams.map(t => {
-        if (t.id === teamId) {
-          const newPlayers = t.players.filter(p => p.id !== playerId);
-          if (playerToRetire.isGoalkeeper && !newPlayers.some(p => p.isGoalkeeper) && newPlayers.length > 0) {
-            const sorted = [...newPlayers].sort((a, b) => b.overall - a.overall);
-            const gkIdx = newPlayers.findIndex(p => p.id === sorted[0].id);
-            if (gkIdx > -1) newPlayers[gkIdx] = { ...newPlayers[gkIdx], isGoalkeeper: true };
-          }
-          return { ...t, players: newPlayers };
-        }
-        if (t.teamName === 'APOSENTADOS') {
-          const retiredPlayer = {
-            ...playerToRetire,
-            clubHistory: [...(playerToRetire.clubHistory || []), { season: this.season(), teamId: 'BBB', teamName: 'APOSENTADOS' }]
-          };
-          return { ...t, players: [...t.players, retiredPlayer] };
-        }
-        return t;
-      });
-    });
 
     this.syncLeagues();
   }
 
   promotePlayer(playerId: string, teamId: string): void {
-    this.teams.update(currentTeams => {
-      const targetTeam = currentTeams.find(t => t.id === teamId);
-      if (!targetTeam) return currentTeams;
-
-      const playerIdx = targetTeam.youthAcademy.findIndex(p => p.id === playerId);
-      if (playerIdx === -1) return currentTeams;
-
-      const basePlayer = targetTeam.youthAcademy[playerIdx];
-      const playerWithContract = {
-        ...basePlayer,
-        contractYears: 3,
-        isGoalkeeper: basePlayer.isGoalkeeper && targetTeam.players.some(p => p.isGoalkeeper) ? false : basePlayer.isGoalkeeper,
-        clubHistory: [{ season: this.season(), teamId, teamName: targetTeam.teamName }]
-      };
-
-      return currentTeams.map(t => {
-        if (t.id === teamId) {
-          const newPlayers = [...t.players, playerWithContract];
-          const newYouth = t.youthAcademy.filter(p => p.id !== playerId);
-          // Automatic Replacement
-          const needsGK = !newYouth.some(y => y.isGoalkeeper);
-          newYouth.push(this.generateYouthPlayer(t.countryId, needsGK));
-
-          return { ...t, players: newPlayers, youthAcademy: newYouth };
-        }
-        return t;
-      });
-    });
-
-    this.syncLeagues();
+    // Desativado
   }
 
   releasePlayer(playerId: string, teamId: string): void {
-    const freeAgentTeam = this.teams().find(t => t.teamName === 'SEM EQUIPE');
-    if (!freeAgentTeam) return;
-
-    this.teams.update(currentTeams => {
-      const targetTeam = currentTeams.find(t => t.id === teamId);
-      if (!targetTeam) return currentTeams;
-
-      const playerIdx = targetTeam.youthAcademy.findIndex(p => p.id === playerId);
-      if (playerIdx === -1) return currentTeams;
-
-      const releasedPlayer = {
-        ...targetTeam.youthAcademy[playerIdx],
-        contractYears: 1,
-        clubHistory: [...(targetTeam.youthAcademy[playerIdx].clubHistory || []), { season: this.season(), teamId: freeAgentTeam.id, teamName: freeAgentTeam.teamName }]
-      };
-
-      return currentTeams.map(t => {
-        if (t.id === teamId) {
-          return { ...t, youthAcademy: t.youthAcademy.filter(p => p.id !== playerId) };
-        }
-        if (t.id === freeAgentTeam.id) {
-          return { ...t, players: [...t.players, releasedPlayer] };
-        }
-        return t;
-      });
-    });
-
-    this.syncLeagues();
+    // Desativado
   }
 
   getPlayerHistory(playerId: string) {
-    const allLeagues = this.leagues();
-    const allIntCompetitions = this.internationalCompetitions();
-    const bestPlayerHistory = this.bestPlayerInTheWorldHistory();
-
-    let playerInstance: Player | null = null;
-    for (const team of this.teams()) {
-      const player = team.players.find(p => p.id === playerId);
-      if (player) {
-        playerInstance = player;
-        break;
-      }
-    }
-
-    const defaultReturn = {
+    return {
       careerStats: {},
       totalCareerStats: { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 },
       trophies: new Map(),
@@ -2649,124 +2327,33 @@ export class UniverseService {
       clubHistory: [],
       overallHistory: []
     };
-
-    if (!playerInstance) {
-      return defaultReturn;
-    }
-
-    const trophies = new Map<string, { wins: { season: number; teamName: string }[] }>();
-    const individualAwards: { season: number; award: string; competition: string; teamName: string; }[] = [];
-    const clubHistory: { season: number, teamName: string }[] = playerInstance.clubHistory
-      ? playerInstance.clubHistory.map(h => ({ season: h.season, teamName: h.teamName }))
-      : [];
-
-    const addTrophy = (name: string, season: number, teamName: string) => {
-      if (!trophies.has(name)) {
-        trophies.set(name, { wins: [] });
-      }
-      trophies.get(name)!.wins.push({ season, teamName });
-    };
-
-    const addIndividualAward = (award: string, competition: string, season: number, teamName: string) => {
-      individualAwards.push({ award, competition, season, teamName });
-    };
-
-    // Process National History
-    allLeagues.forEach(league => {
-      league.history.forEach(seasonRecord => {
-        const checkNationalCompetition = (comp: CompetitionRecord | undefined) => {
-          if (!comp || !comp.champion) return;
-          if (comp.champion.players.some(p => p.id === playerId)) {
-            addTrophy(comp.name, seasonRecord.season, comp.champion.teamName);
-          }
-          if (comp.topScorer.player?.id === playerId) addIndividualAward('Artilheiro', comp.name, seasonRecord.season, comp.topScorer.teamName!);
-          if (comp.topAssister.player?.id === playerId) addIndividualAward('Maior Assistente', comp.name, seasonRecord.season, comp.topAssister.teamName!);
-          if (comp.topMotm.player?.id === playerId) addIndividualAward('Melhor Jogador', comp.name, seasonRecord.season, comp.topMotm.teamName!);
-        };
-
-        checkNationalCompetition(seasonRecord.division1);
-        checkNationalCompetition(seasonRecord.division2);
-        checkNationalCompetition(seasonRecord.division3);
-        checkNationalCompetition(seasonRecord.division4);
-        checkNationalCompetition(seasonRecord.cup);
-        checkNationalCompetition(seasonRecord.leagueCup);
-
-        if (seasonRecord.goldenGlove?.player?.id === playerId) addIndividualAward('Luva de Ouro', 'Liga Nacional', seasonRecord.season, seasonRecord.goldenGlove.teamName!);
-        if (seasonRecord.revelation?.player?.id === playerId) addIndividualAward('Revelação (Sub-21)', 'Liga Nacional', seasonRecord.season, seasonRecord.revelation.teamName!);
-        if (seasonRecord.teamOfTheSeason.some(pr => pr.player?.id === playerId)) addIndividualAward('Seleção da Temporada', 'Liga Nacional', seasonRecord.season, seasonRecord.teamOfTheSeason.find(pr => pr.player?.id === playerId)!.teamName!);
-      });
-    });
-
-    // Nota: O histórico de clubes agora é mantido fielmente no array player.clubHistory 
-    // atualizado ao final de cada temporada no SeasonService.
-
-    // Process International History
-    allIntCompetitions.forEach(comp => {
-      comp.history.forEach(seasonRecord => {
-        if (seasonRecord.champion && seasonRecord.champion.players.some(p => p.id === playerId)) {
-          addTrophy(comp.name, seasonRecord.season, seasonRecord.champion.teamName);
-        }
-        if (seasonRecord.topScorer.player?.id === playerId) addIndividualAward('Artilheiro', comp.name, seasonRecord.season, seasonRecord.topScorer.teamName!);
-        if (seasonRecord.topAssister.player?.id === playerId) addIndividualAward('Maior Assistente', comp.name, seasonRecord.season, seasonRecord.topAssister.teamName!);
-        if (seasonRecord.topMotm.player?.id === playerId) addIndividualAward('Melhor Jogador', comp.name, seasonRecord.season, seasonRecord.topMotm.teamName!);
-      });
-    });
-
-    // Process Best Player in the World
-    // FIX: bestPlayerHistory is an array, not a function. Removed parentheses.
-    bestPlayerHistory.forEach(record => {
-      if (record.podium[0].player.id === playerId) {
-        addIndividualAward('Melhor do Mundo', 'Global', record.season, record.podium[0].teamName);
-      }
-    });
-
-
-    const mergedCareerStats: Player['careerStats'] = playerInstance.careerStats || {};
-    const totalCareerStats = { matchesPlayed: 0, goals: 0, assists: 0, motm: 0 };
-    for (const competitionId in mergedCareerStats) {
-      totalCareerStats.matchesPlayed += mergedCareerStats[competitionId].matchesPlayed;
-      totalCareerStats.goals += mergedCareerStats[competitionId].goals;
-      totalCareerStats.assists += mergedCareerStats[competitionId].assists;
-      totalCareerStats.motm += mergedCareerStats[competitionId].motm;
-    }
-
-    const overallHistory = playerInstance.overallHistory || [];
-
-    return {
-      careerStats: mergedCareerStats,
-      totalCareerStats,
-      trophies,
-      individualAwards,
-      clubHistory: clubHistory.sort((a, b) => b.season - a.season),
-      overallHistory
-    };
   }
 
   public getHeadToHead(teamAId: string, teamBId: string): H2HData {
-    const history = this.matchHistory().filter(
-      m => (m.homeTeamId === teamAId && m.awayTeamId === teamBId) || (m.homeTeamId === teamBId && m.awayTeamId === teamAId)
-    );
+      const history = this.matchHistory().filter(
+        m => (m.homeTeamId === teamAId && m.awayTeamId === teamBId) || (m.homeTeamId === teamBId && m.awayTeamId === teamAId)
+      );
 
-    const teamAWins = history.filter(
-      m => (m.homeTeamId === teamAId && m.homeScore > m.awayScore) || (m.awayTeamId === teamAId && m.awayScore > m.homeScore)
-    ).length;
+      const teamAWins = history.filter(
+        m => (m.homeTeamId === teamAId && m.homeScore > m.awayScore) || (m.awayTeamId === teamAId && m.awayScore > m.homeScore)
+      ).length;
 
-    const teamBWins = history.filter(
-      m => (m.homeTeamId === teamBId && m.homeScore > m.awayScore) || (m.awayTeamId === teamBId && m.awayScore > m.homeScore)
-    ).length;
+      const teamBWins = history.filter(
+        m => (m.homeTeamId === teamBId && m.homeScore > m.awayScore) || (m.awayTeamId === teamBId && m.awayScore > m.homeScore)
+      ).length;
 
-    const draws = history.filter(m => m.homeScore === m.awayScore).length;
+      const draws = history.filter(m => m.homeScore === m.awayScore).length;
 
-    return {
-      teamAWins,
-      teamBWins,
-      draws,
-      history: history.sort((a, b) => b.season - a.season)
-    };
-  }
+      return {
+        teamAWins,
+        teamBWins,
+        draws,
+        history: history.sort((a, b) => b.season - a.season)
+      };
+    }
 
   public getUpToDateTeamsForInternationalComp(competition: InternationalCompetition): Team[] {
-    if (competition.status === 'playoffs') {
+      if(competition.status === 'playoffs') {
       return competition.teams;
     }
     const teamsFromLeague = competition.leaguePhase.flatMap((g: Division) => g.teams);
@@ -2806,202 +2393,24 @@ export class UniverseService {
 
   // --- NOVO MÉTODO ---
   public updateNationalTeamPlayerNumber(playerId: string, clubTeamId: string, newNumber: number): void {
-    this.teams.update(currentTeams => {
-      const newTeams = JSON.parse(JSON.stringify(currentTeams));
-
-      // Encontra o jogador que estamos editando (Jogador A)
-      const teamA = newTeams.find((t: Team) => t.id === clubTeamId);
-      const playerA = teamA?.players.find((p: Player) => p.id === playerId);
-
-      if (!playerA) {
-        console.error("Jogador A não encontrado para troca de número.");
-        return newTeams;
-      }
-
-      const oldNumber = playerA.nationalTeamOverrides?.number ?? playerA.number;
-      if (newNumber === oldNumber) return newTeams; // Nenhum número para alterar
-
-      const nationalityId = playerA.nationalityId;
-      let playerB: Player | undefined;
-      let teamB: Team | undefined;
-
-      // Encontra o outro jogador (Jogador B) que já tem o novo número na mesma seleção
-      for (const team of newTeams) {
-        for (const player of team.players) {
-          if (player.nationalityId === nationalityId && player.id !== playerA.id) {
-            const playerBNumber = player.nationalTeamOverrides?.number ?? player.number;
-            if (playerBNumber === newNumber) {
-              playerB = player;
-              teamB = team;
-              break;
-            }
-          }
-        }
-        if (playerB) break;
-      }
-
-      // Se encontrou o Jogador B, troque os números
-      if (playerB) {
-        if (!playerB.nationalTeamOverrides) playerB.nationalTeamOverrides = {};
-        playerB.nationalTeamOverrides.number = oldNumber;
-      }
-
-      // Atualiza o número do Jogador A
-      if (!playerA.nationalTeamOverrides) playerA.nationalTeamOverrides = {};
-      playerA.nationalTeamOverrides.number = newNumber;
-
-      return newTeams;
-    });
+    // Desativado
   }
 
   public getNationalTeams(): Team[] {
-    const allPlayersWithTeam = this.teams()
-      .filter(team => team.countryId !== 'AAA' && team.countryId !== 'BBB')
-      .flatMap(team => team.players.map(player => ({ player, team })));
-
-    const playersByNationality = new Map<string, { player: Player, team: Team }[]>();
-
-    allPlayersWithTeam.forEach(item => {
-      const nationalityId = item.player.nationalityId;
-      if (!playersByNationality.has(nationalityId)) {
-        playersByNationality.set(nationalityId, []);
-      }
-      playersByNationality.get(nationalityId)!.push(item);
-    });
-
-    const nationalTeams: Team[] = [];
-    const nationalityData = new Map<string, { code2: string; name: string }>(NATIONALITIES.map(n => [n.code3, { code2: n.code2, name: n.name }]));
-
-    for (const [nationalityId, playersWithTeam] of playersByNationality.entries()) {
-      const goalkeepers = playersWithTeam.filter(p => p.player.isGoalkeeper).sort((a, b) => b.player.overall - a.player.overall);
-      const outfielders = playersWithTeam.filter(p => !p.player.isGoalkeeper).sort((a, b) => b.player.overall - a.player.overall);
-
-      const bestGk = goalkeepers.length > 0 ? goalkeepers[0] : null;
-      const bestOutfielders = outfielders.slice(0, 4);
-
-      let squad: Player[] = [];
-      let overall = 0;
-
-      if (bestGk && bestOutfielders.length === 4) {
-        // MODIFICAÇÃO AQUI: Aplica o 'override' do número da camisa
-        squad = [bestGk, ...bestOutfielders].map(({ player, team }) => {
-          const playerCopy: Player & { teamName: string, clubId: string, clubNumber: number } = {
-            ...JSON.parse(JSON.stringify(player)),
-            teamName: team.teamName,
-            clubId: team.id,
-            teamId: team.id,
-            clubNumber: player.number // Armazena o número original do clube
-          };
-          if (playerCopy.nationalTeamOverrides?.number) {
-            playerCopy.number = playerCopy.nationalTeamOverrides.number;
-          }
-          return playerCopy;
-        });
-
-        overall = Math.round(squad.reduce((sum, p) => sum + p.overall, 0) / squad.length);
-      }
-
-      const natInfo = nationalityData.get(nationalityId);
-      if (natInfo) {
-        nationalTeams.push({
-          id: `NT-${nationalityId}`,
-          teamName: natInfo.name,
-          countryId: nationalityId,
-          players: squad,
-          youthAcademy: [],
-          overall: overall,
-          budget: 0,
-          stats: { matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
-        });
-      }
-    }
-    return nationalTeams;
+    return []; // Desativado: o jogo é focado em clubes agora.
   }
+
   public getNationalTeamsFullList(): Team[] {
-    const simulated = this.getNationalTeams();
-    const simulatedIds = new Set(simulated.map(t => t.countryId));
-
-    const extra: Team[] = NATIONALITIES
-      .filter(n => !simulatedIds.has(n.code3))
-      .map(n => ({
-        id: `NT-${n.code3}`,
-        teamName: n.name,
-        countryId: n.code3,
-        players: [],
-        youthAcademy: [],
-        overall: 0,
-        budget: 0,
-        stats: { matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
-      }));
-
-    return [...simulated, ...extra].sort((a, b) => a.teamName.localeCompare(b.teamName));
-  }
-
-  public getU20NationalTeams(): Team[] {
-    const allYoungPlayersWithTeam = this.teams()
-      .filter(team => team.countryId !== 'AAA' && team.countryId !== 'BBB')
-      .flatMap(team =>
-        [...team.players, ...team.youthAcademy].map(player => ({ player, team }))
-      )
-      .filter(({ player }) => player.age <= 20);
-
-    const playersByNationality = new Map<string, { player: Player, team: Team }[]>();
-
-    allYoungPlayersWithTeam.forEach(item => {
-      const nationalityId = item.player.nationalityId;
-      if (!playersByNationality.has(nationalityId)) {
-        playersByNationality.set(nationalityId, []);
-      }
-      playersByNationality.get(nationalityId)!.push(item);
-    });
-
-    const nationalTeams: Team[] = [];
-    const nationalityData = new Map<string, { code2: string; name: string }>(NATIONALITIES.map(n => [n.code3, { code2: n.code2, name: n.name }]));
-
-    for (const [nationalityId, playersWithTeam] of playersByNationality.entries()) {
-      const goalkeepers = playersWithTeam.filter(p => p.player.isGoalkeeper).sort((a, b) => b.player.overall - a.player.overall);
-      const outfielders = playersWithTeam.filter(p => !p.player.isGoalkeeper).sort((a, b) => b.player.overall - a.player.overall);
-
-      const bestGk = goalkeepers.length > 0 ? goalkeepers[0] : null;
-      const bestOutfielders = outfielders.slice(0, 4);
-
-      let squad: Player[] = [];
-      let overall = 0;
-
-      if (bestGk && bestOutfielders.length === 4) {
-        // MODIFICAÇÃO AQUI: Aplica o 'override' do número da camisa
-        squad = [bestGk, ...bestOutfielders].map(({ player, team }) => {
-          const playerCopy: Player & { teamName: string, clubId: string, clubNumber: number } = {
-            ...JSON.parse(JSON.stringify(player)),
-            teamName: team.teamName,
-            clubId: team.id,
-            teamId: team.id,
-            clubNumber: player.number // Armazena o número original do clube
-          };
-          if (playerCopy.nationalTeamOverrides?.number) {
-            playerCopy.number = playerCopy.nationalTeamOverrides.number;
-          }
-          return playerCopy;
-        });
-
-        overall = Math.round(squad.reduce((sum, p) => sum + p.overall, 0) / squad.length);
-      }
-
-      const natInfo = nationalityData.get(nationalityId);
-      if (natInfo) {
-        nationalTeams.push({
-          id: `NT_U20-${nationalityId}`,
-          teamName: `${natInfo.name} Sub-20`,
-          countryId: nationalityId,
-          players: squad,
-          youthAcademy: [],
-          overall: overall,
-          budget: 0,
-          stats: { matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
-        });
-      }
-    }
-    return nationalTeams;
+    return NATIONALITIES.map(n => ({
+      id: `NT-${n.code3}`,
+      teamName: n.name,
+      countryId: n.code3,
+      players: [],
+      youthAcademy: [],
+      overall: 0,
+      budget: 0,
+      stats: { matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
+    })).sort((a, b) => a.teamName.localeCompare(b.teamName));
   }
 
   private syncLeagues(): void {
@@ -3094,7 +2503,7 @@ export class UniverseService {
 
     // 3. Atualizar os signals e refletir em todo o app
     this.teams.set([...allTeams]);
-    this.syncLeagues(); 
+    this.syncLeagues();
   }
 
   /**

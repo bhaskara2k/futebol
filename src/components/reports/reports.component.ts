@@ -342,65 +342,11 @@ export class ReportsComponent {
         };
     }
 
-    playersData = computed(() => {
-        // Só processar se o relatório de jogadores estiver selecionado
-        if (this.reportType() !== 'players') {
-            return [];
-        }
-        return this.generatePlayersData(false);
-    });
+    playersData = computed(() => []);
+    u20PlayersData = computed(() => []);
 
-    u20PlayersData = computed(() => {
-        // Só processar se o relatório de jogadores sub-20 estiver selecionado
-        if (this.reportType() !== 'u20_players') {
-            return [];
-        }
-        return this.generatePlayersData(true);
-    });
-
-    nationalPlayersData = computed(() => {
-        if (this.reportType() !== 'national_players') {
-            return [];
-        }
-
-        const nationalTeams = this.universeService.getNationalTeams();
-        const leagues = this.universeService.leagues();
-
-        // Achatar lista e adicionar nome da seleção e continente
-        const allPlayers = nationalTeams.flatMap(nt =>
-            nt.players.map(p => ({
-                ...p,
-                selecao: nt.teamName,
-                continenteSelecao: this.universeService.getContinentForLeague(nt.countryId)
-            }))
-        );
-
-        return allPlayers
-            .map(p => this.mapPlayerToReport(p, leagues))
-            .sort((a, b) => b.overall - a.overall);
-    });
-
-    nationalU20PlayersData = computed(() => {
-        if (this.reportType() !== 'national_u20_players') {
-            return [];
-        }
-
-        const nationalTeams = this.universeService.getU20NationalTeams();
-        const leagues = this.universeService.leagues();
-
-        // Achatar lista e adicionar nome da seleção e continente
-        const allPlayers = nationalTeams.flatMap(nt =>
-            nt.players.map(p => ({
-                ...p,
-                selecao: nt.teamName,
-                continenteSelecao: this.universeService.getContinentForLeague(nt.countryId)
-            }))
-        );
-
-        return allPlayers
-            .map(p => this.mapPlayerToReport(p, leagues))
-            .sort((a, b) => b.overall - a.overall);
-    });
+    nationalPlayersData = computed(() => []);
+    nationalU20PlayersData = computed(() => []);
 
     slotsData = computed(() => {
         if (this.reportType() !== 'slot_distribution') return null;
@@ -425,9 +371,9 @@ export class ReportsComponent {
         leaguesToProcess.forEach(league => {
             league.divisions.forEach(div => {
                 div.teams.forEach(team => {
-                    const avgAge = team.players.reduce((sum, p) => sum + p.age, 0) / team.players.length;
-                    const avgOverall = team.players.reduce((sum, p) => sum + p.overall, 0) / team.players.length;
-                    const totalValue = team.players.reduce((sum, p) => sum + p.marketValue, 0);
+                    const avgAge = 25;
+                    const avgOverall = team.overall;
+                    const totalValue = team.budget;
 
                     // Contar títulos (sumarizado)
                     const trophies = team.trophies || [];
@@ -474,7 +420,7 @@ export class ReportsComponent {
                         liga: league.countryName,
                         overall: team.overall,
                         orcamento: team.budget,
-                        numeroJogadores: team.players.length,
+                        numeroJogadores: 0,
                         idadeMedia: Math.round(avgAge * 10) / 10,
                         overallMedio: Math.round(avgOverall * 10) / 10,
                         valorTotalElenco: totalValue,

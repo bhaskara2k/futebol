@@ -346,8 +346,8 @@ export class LeagueTableComponent {
     // 2. National League Continental Qualification
     if (country && (divName.includes('Primeira') || divName.includes('Única') || divName.includes('Conferência') || divName === 'Série A' || divName === 'Liga Profesional' || ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1', 'Eredivisie', 'Russian Premier League', 'Jupiler Pro League', 'Süper Lig', 'Primeira Portugal', 'J1 League', 'K League 1', 'A-League', 'Saudi Pro League'].includes(divName))) {
       if (this.isEuropean()) {
-        const clLogo = 'assets/icons/champions-league.png';
-        const elLogo = 'assets/icons/europa-league.png';
+        const clLogo = '/assets/icons/champions-league.png';
+        const elLogo = '/assets/icons/europa-league.png';
 
         if (['ESP', 'ENG', 'ITA', 'GER', 'FRA'].includes(country)) {
           if (index < 4) return { img: clLogo, title: 'Vaga Direta Champions League' };
@@ -363,8 +363,8 @@ export class LeagueTableComponent {
           if (index < 4) return { img: elLogo, title: 'Vaga Direta Europa League' };
         }
       } else if (this.isSouthAmerican()) {
-        const libLogo = 'assets/icons/libertadores.png';
-        const sulLogo = 'assets/icons/sudamericana.png';
+        const libLogo = '/assets/icons/libertadores.png';
+        const sulLogo = '/assets/icons/sudamericana.png';
         const spots = this.samSpots[country];
         if (spots) {
           if (index < spots.lib) return { img: libLogo, title: 'Vaga para Libertadores' };
@@ -372,10 +372,10 @@ export class LeagueTableComponent {
           if (index < spots.lib + spots.lib_po + spots.sul) return { img: sulLogo, title: 'Vaga para Sulamericana' };
         }
       } else if (country === 'USA') {
-        const mlsLogo = 'assets/icons/mls_cup.png';
+        const mlsLogo = '/assets/icons/mls_cup.png';
         if (index < 8) return { img: mlsLogo, title: 'Vaga MLS Cup' };
       } else if (this.isNorthAmerican()) {
-        const ncaLogo = 'assets/icons/america-champions.png';
+        const ncaLogo = '/assets/icons/america-champions.png';
         if (index < 8) return { img: ncaLogo, title: 'Vaga Direta America Champions League' };
       } else if (this.isAfrican()) {
         if (this.paisesVagaDireta.includes(country)) {
@@ -387,7 +387,7 @@ export class LeagueTableComponent {
           if (index < 2) return { icon: 'fa-angle-right', class: 'text-blue-400', title: 'Vaga para Pré-Africa Champions League' };
         }
       } else if (this.isAsian()) {
-        const asiLogo = 'assets/icons/asia-champions-league.png';
+        const asiLogo = '/assets/icons/asia-champions-league.png';
         if (['JPN', 'SAU', 'KOR', 'AUS'].includes(country)) {
           if (index < 4) return { img: asiLogo, title: 'Vaga Champions League da Ásia' };
         } else if (this.qualificationSpots[country]) {

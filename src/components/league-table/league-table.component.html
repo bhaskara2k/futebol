@@ -9,7 +9,7 @@
         <tr>
           <th scope="col" class="pl-4 pr-1 py-4 text-center w-10">Pos</th>
           <th scope="col" class="px-3 py-4 text-left">Clube</th>
-          <th scope="col" class="px-2 py-4 text-center w-8" title="Status">S</th>
+          <th scope="col" class="px-2 py-4 text-center w-12" title="Status">S</th>
           <th scope="col" class="px-2 py-4 text-center w-10 text-white font-black text-base">PTS</th>
           <th scope="col" class="px-2 py-4 text-center w-10" title="Jogos">J</th>
           <th scope="col" class="px-2 py-4 text-center w-10 text-green-400" title="Vitórias">V</th>
@@ -46,9 +46,16 @@
           </td>
 
           <!-- 3. Status -->
-          <td class="px-2 py-3 text-center">
+          <td class="px-2 py-3 text-center align-middle">
             @if(getPositionIcon(i); as posIcon) {
-            <i class="fas text-sm" [class]="posIcon.icon + ' ' + posIcon.class" [title]="posIcon.title"></i>
+              <div class="flex justify-center items-center">
+                @if(posIcon.img) {
+                  <img [src]="posIcon.img" [title]="posIcon.title" 
+                    class="w-8 h-8 object-contain filter drop-shadow-md hover:scale-125 transition-transform cursor-help">
+                } @else {
+                  <i class="fas text-sm" [class]="posIcon.icon + ' ' + posIcon.class" [title]="posIcon.title"></i>
+                }
+              </div>
             }
           </td>
 

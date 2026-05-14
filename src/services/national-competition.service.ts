@@ -87,31 +87,26 @@ export class NationalCompetitionService {
     const leagueIndex = leagues.findIndex(l => l.countryId === countryId);
     if (leagueIndex === -1) return;
 
-    // Criamos um clone profundo para trabalhar na simulação sem mutar o sinal prematuramente
-    const league = JSON.parse(JSON.stringify(leagues[leagueIndex]));
-
-    if (league.status === 'finished' || league.status === 'waiting_international') {
-      return;
-    }
-
-    const division = league.divisions[divisionIndex];
-    const roundFixtures = division.fixtures[league.currentRound];
-
-    if (roundFixtures) {
-      for (const match of roundFixtures) {
-        if (!match.played) {
-          // A simulação é rápida, mas pode ser async. Aguardamos cada uma.
-          await this.simulationService.simulateMatch(match, division);
-        }
-      }
-    }
-
-    // Atualizamos os rankings de jogadores após as simulações
-    this.competitionService.updatePlayerRankings(league);
-
-    // Agora atualizamos o sinal global com a liga simulada
+    // Mutação controlada usando update para preservar referências
     this.universeService.leagues.update(currentLeagues => {
       const newLeagues = [...currentLeagues];
+      const league = { ...newLeagues[leagueIndex] };
+      league.divisions = [...league.divisions];
+      const division = { ...league.divisions[divisionIndex] };
+      
+      const roundFixtures = division.fixtures[league.currentRound];
+      if (roundFixtures) {
+        for (const match of roundFixtures) {
+          if (!match.played) {
+            this.simulationService.simulateMatch(match, division);
+          }
+        }
+      }
+
+      // Atualizamos os rankings de jogadores após as simulações
+      this.competitionService.updatePlayerRankings(league);
+
+      league.divisions[divisionIndex] = division;
       newLeagues[leagueIndex] = league;
       return newLeagues;
     });

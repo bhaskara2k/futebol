@@ -2476,7 +2476,12 @@ export class UniverseService {
     // 5. Restaurar Resumos
     this.seasonSummaries.set(state.summaries || []);
 
-    console.log("✅ Estado do Universo restaurado!");
+    // 6. Autocorreção: Recalibrar estatísticas
+    // Isso garante que se algum save foi feito com stats zeradas (devido a bugs de referência ou clones profundos),
+    // elas serão restauradas a partir do histórico real de partidas (fixtures).
+    this.recalibrateAllStats();
+
+    console.log("✅ Estado do Universo restaurado e estatísticas recalibradas.");
   }
 
   /**
@@ -2537,10 +2542,9 @@ export class UniverseService {
       t.stats = { points: 0, matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };
     });
 
-    // 2. Reprocessar Ligas
+    // 2. Reprocessar Ligas Nacionais
     this.leagues().forEach(league => {
       league.divisions.forEach(div => {
-        // Filtrar partidas jogadas nesta liga/divisão
         Object.values(div.fixtures).forEach(round => {
           round.forEach(match => {
             if (match.played && match.homeScore !== undefined && match.awayScore !== undefined) {
@@ -2576,8 +2580,98 @@ export class UniverseService {
       });
     });
 
-    // 3. Forçar atualização do sinal
+    // 3. Reprocessar Competições Internacionais (Fase de Liga e Grupos)
+    this.internationalCompetitions().forEach(comp => {
+      if (comp.leaguePhase) {
+        comp.leaguePhase.forEach(div => {
+          Object.values(div.fixtures).forEach(round => {
+            round.forEach(match => {
+              if (match.played && match.homeScore !== undefined && match.awayScore !== undefined) {
+                const home = currentTeams.find(t => t.id === match.homeTeam.id);
+                const away = currentTeams.find(t => t.id === match.awayTeam.id);
+                if (home && away) this._applyStats(home, away, match.homeScore, match.awayScore);
+              }
+            });
+          });
+        });
+      }
+
+      // Reprocessar Mata-mata Internacional (Playoffs e Knockout)
+      [comp.playoffPhase, comp.knockoutPhase].forEach(cup => {
+        if (cup && cup.rounds) {
+          cup.rounds.forEach(round => {
+            round.matches.forEach(m => {
+              // Ida
+              if (m.leg1Played && m.homeScoreLeg1 !== undefined && m.awayScoreLeg1 !== undefined) {
+                const home = currentTeams.find(t => t.id === m.homeTeam.id);
+                const away = currentTeams.find(t => t.id === m.awayTeam.id);
+                if (home && away) this._applyStats(home, away, m.homeScoreLeg1, m.awayScoreLeg1);
+              }
+              // Volta
+              if (m.leg2Played && m.homeScoreLeg2 !== undefined && m.awayScoreLeg2 !== undefined) {
+                const home = currentTeams.find(t => t.id === m.awayTeam.id); // Invertido na volta
+                const away = currentTeams.find(t => t.id === m.homeTeam.id);
+                if (home && away) this._applyStats(home, away, m.homeScoreLeg2, m.awayScoreLeg2);
+              }
+            });
+          });
+        }
+      });
+    });
+
+    // 4. Reprocessar Copas Nacionais
+    this.leagues().forEach(league => {
+      [league.cup, league.leagueCup, league.supercup].forEach(cup => {
+        if (cup && cup.rounds) {
+          cup.rounds.forEach(round => {
+            round.matches.forEach(m => {
+              // Ida
+              if (m.leg1Played && m.homeScoreLeg1 !== undefined && m.awayScoreLeg1 !== undefined) {
+                const home = currentTeams.find(t => t.id === m.homeTeam.id);
+                const away = currentTeams.find(t => t.id === m.awayTeam.id);
+                if (home && away) this._applyStats(home, away, m.homeScoreLeg1, m.awayScoreLeg1);
+              }
+              // Volta
+              if (m.leg2Played && m.homeScoreLeg2 !== undefined && m.awayScoreLeg2 !== undefined) {
+                const home = currentTeams.find(t => t.id === m.awayTeam.id); // Invertido na volta
+                const away = currentTeams.find(t => t.id === m.homeTeam.id);
+                if (home && away) this._applyStats(home, away, m.homeScoreLeg2, m.awayScoreLeg2);
+              }
+            });
+          });
+        }
+      });
+    });
+
+    // 5. Forçar atualização do sinal
     this.teams.set([...currentTeams]);
-    console.log('✅ Recalibragem concluída com sucesso!');
+    console.log('✅ Recalibragem total concluída!');
+  }
+
+  /**
+   * Helper interno para aplicar estatísticas de uma partida a dois times
+   */
+  private _applyStats(home: Team, away: Team, hGoals: number, aGoals: number): void {
+    home.stats.matchesPlayed++;
+    away.stats.matchesPlayed++;
+    home.stats.goalsFor += hGoals;
+    away.stats.goalsFor += aGoals;
+    home.stats.goalsAgainst += aGoals;
+    away.stats.goalsAgainst += hGoals;
+
+    if (hGoals > aGoals) {
+      home.stats.wins++;
+      away.stats.losses++;
+      home.stats.points += 3;
+    } else if (aGoals > hGoals) {
+      away.stats.wins++;
+      home.stats.losses++;
+      away.stats.points += 3;
+    } else {
+      home.stats.draws++;
+      away.stats.draws++;
+      home.stats.points += 1;
+      away.stats.points += 1;
+    }
   }
 }

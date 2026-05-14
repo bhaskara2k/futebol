@@ -230,6 +230,115 @@ export class UniverseService {
     if (teamName.includes('DEPORTIVO RIESTRA')) return 'RIE';
     if (teamName.includes('ROSARIO CENTRAL')) return 'ROS';
 
+    if (teamName.includes('AL-AHLI')) return 'AHL';
+    if (teamName.includes('AL-ETTIFAQ')) return 'ETF';
+    if (teamName.includes('AL-FATEH')) return 'FAT';
+    if (teamName.includes('AL-HAZEM')) return 'HAZ';
+    if (teamName.includes('AL-HILAL')) return 'HIL';
+    if (teamName.includes('AL-ITTIHAD')) return 'ITD';
+    if (teamName.includes('AL-KHALEEJ')) return 'KHL';
+    if (teamName.includes('AL-NASSR')) return 'NAS';
+    if (teamName.includes('AL-QADISIYAH')) return 'QAD';
+    if (teamName.includes('AL-SHABAB')) return 'SHB';
+    if (teamName.includes('AL-TAAWOUN')) return 'TAW';
+    if (teamName.includes('NEOM')) return 'NEO';
+
+    if (teamName.includes('ADELAIDE UNITED')) return 'ADE';
+    if (teamName.includes('BRISBANE ROAR')) return 'BRI';
+    if (teamName.includes('CENTRAL COAST MARINERS')) return 'CCM';
+    if (teamName.includes('MELBOURNE CITY')) return 'MCY';
+    if (teamName.includes('PERTH GLORY')) return 'PER';
+    if (teamName.includes('SYDNEY FC')) return 'SYD';
+    if (teamName.includes('NEWCASTLE JETS')) return 'NEW';
+    if (teamName.includes('WELLINGTON PHOENIX')) return 'WEL';
+    if (teamName.includes('WESTERN SYDNEY WANDERERS')) return 'WSW';
+    if (teamName.includes('MELBOURNE VICTORY')) return 'MVC';
+    if (teamName.includes('AUCKLAND FC')) return 'AUC';
+    if (teamName.includes('MACARTHUR FC')) return 'MAC';
+
+    if (teamName.includes('ALBIREX NIIGATA')) return 'ALB';
+    if (teamName.includes('GAMBA OSAKA')) return 'GAM';
+    if (teamName.includes('KASHIWA REYSOL')) return 'REY';
+    if (teamName.includes('KASHIMA ANTLERS')) return 'ANT';
+    if (teamName.includes('VISSEL KOBE')) return 'VIS';
+    if (teamName.includes('VEGALTA SENDAI')) return 'SEN';
+    if (teamName.includes('JUBILO IWATA')) return 'JUB';
+    if (teamName.includes('SHIMIZU S-PULSE')) return 'SHI';
+    if (teamName.includes('JEF UNITED ICHIHARA CHIBA')) return 'JEF';
+    if (teamName.includes('SANFRECCE HIROSHIMA')) return 'SFR';
+    if (teamName.includes('URAWA RED DIAMONDS')) return 'URA';
+    if (teamName.includes('YOKOHAMA F. MARINOS')) return 'YFM';
+    if (teamName.includes('FC TOKYO')) return 'FCT';
+    if (teamName.includes('KAWASAKI FRONTALE')) return 'FRO';
+    if (teamName.includes('NAGOYA GRAMPUS')) return 'NAG';
+    if (teamName.includes('CEREZO OSAKA')) return 'CER';
+    if (teamName.includes('SHONAN BELLMARE')) return 'SHO';
+    if (teamName.includes('AVISPA FUKUOKA')) return 'AVI';
+    if (teamName.includes('HOKKAIDO CONSADOLE SAPPORO')) return 'SAP';
+    if (teamName.includes('KYOTO SANGA')) return 'KYO';
+    if (teamName.includes('MACHIDA ZELVIA')) return 'ZEL';
+    if (teamName.includes('NAGOYA GRAMPUS')) return 'NAG';
+    if (teamName.includes('SAGAN TOSU')) return 'SAG';
+    if (teamName.includes('SHONAN BELLMARE')) return 'SHO';
+
+    if (teamName.includes('BUSAN IPARK')) return 'BUS';
+    if (teamName.includes('FC SEOUL')) return 'FCS';
+    if (teamName.includes('JEONBUK HYUNDAI')) return 'HYU';
+    if (teamName.includes('POHANG STEELERS')) return 'POH';
+    if (teamName.includes('SUWON SAMSUNG BLUEWINGS')) return 'SSB';
+    if (teamName.includes('DAEJEON HANA CITIZEN')) return 'DAE';
+    if (teamName.includes('GIMCHEON SANGMU')) return 'GIM';
+
+    if (teamName.includes('ATLANTA UNITED')) return 'ATL';
+    if (teamName.includes('CHARLOTTE FC')) return 'CHA';
+    if (teamName.includes('CHICAGO FIRE')) return 'CHI';
+    if (teamName.includes('COLUMBUS CREW')) return 'COL';
+    if (teamName.includes('DC UNITED')) return 'DCU';
+    if (teamName.includes('INTER MIAMI')) return 'MIA';
+    if (teamName.includes('FC CINCINNATI')) return 'FCC';
+    if (teamName.includes('LOUISVILLE CITY')) return 'LOU';
+    if (teamName.includes('MONTREAL IMPACT')) return 'MON';
+    if (teamName.includes('ORLANDO CITY')) return 'ORL';
+    if (teamName.includes('NASHVILLE SC')) return 'NSC';
+    if (teamName.includes('NEW ENGLAND REVOLUTION')) return 'NER';
+    if (teamName.includes('NEW YORK RED BULLS')) return 'NYRB';
+    if (teamName.includes('HOUSTON DYNAMO')) return 'HOU';
+    if (teamName.includes('REAL SALT LAKE')) return 'RSL';
+    if (teamName.includes('PHILADELPHIA UNION')) return 'UNI';
+    if (teamName.includes('TORONTO FC')) return 'TOR';
+    if (teamName.includes('PORTLAND TIMBERS')) return 'POR';
+    if (teamName.includes('SEATTLE SOUNDERS FC')) return 'SEA';
+    if (teamName.includes('AUSTIN FC')) return 'AUS';
+    if (teamName.includes('COLORADO RAPIDS')) return 'COL';
+    if (teamName.includes('CHICAGO FIRE')) return 'CHI';
+    if (teamName.includes('FC DALLAS')) return 'FCD';
+    if (teamName.includes('FC TULSA')) return 'FCT';
+    if (teamName.includes('HOUSTON DYNAMO')) return 'HOU';
+    if (teamName.includes('LA GALAXY')) return 'LAG';
+    if (teamName.includes('LAFC')) return 'LAFC';
+    if (teamName.includes('MINNESOTA UNITED')) return 'MIN';
+    if (teamName.includes('REAL SALT LAKE')) return 'RSL';
+    if (teamName.includes('SAN DIEGO FC')) return 'SAN';
+    if (teamName.includes('SAN JOSE EARTHQUAKES')) return 'SJE';
+    if (teamName.includes('SPORTING KANSAS CITY')) return 'SKC';
+    if (teamName.includes('ST. LOUIS CITY SC')) return 'SLC';
+    if (teamName.includes('VANCOUVER WHITECAPS')) return 'VAN';
+
+    if (teamName.includes('ATLÉTICO SAN LUIS')) return 'ASL';
+    if (teamName.includes('CHIVAS GUADALAJARA')) return 'CHV';
+    if (teamName.includes('CF MONTERREY')) return 'MTY';
+    if (teamName.includes('PUMAS UNAM')) return 'PUM';
+    if (teamName.includes('CLUB AMÉRICA')) return 'AME';
+    if (teamName.includes('CLUB LEÓN')) return 'LEO';
+    if (teamName.includes('CLUB NECAXA')) return 'NEC';
+    if (teamName.includes('CLUB PACHUCA')) return 'PAC';
+    if (teamName.includes('CLUB TIJUANA')) return 'TIJ';
+    if (teamName.includes('CLUB PUEBLA')) return 'PUE';
+    if (teamName.includes('DORADOS DE SINALOA')) return 'SIN';
+    if (teamName.includes('FC JUÁREZ')) return 'FCJ';
+    if (teamName.includes('ATLAS FC')) return 'ATS';
+    if (teamName.includes('TIGRES UANL')) return 'TIG';
+
     const words = name.split(' ');
     if (words.length >= 2) {
       return (words[0].substring(0, 1) + words[1].substring(0, 2)).toUpperCase();
@@ -2330,30 +2439,30 @@ export class UniverseService {
   }
 
   public getHeadToHead(teamAId: string, teamBId: string): H2HData {
-      const history = this.matchHistory().filter(
-        m => (m.homeTeamId === teamAId && m.awayTeamId === teamBId) || (m.homeTeamId === teamBId && m.awayTeamId === teamAId)
-      );
+    const history = this.matchHistory().filter(
+      m => (m.homeTeamId === teamAId && m.awayTeamId === teamBId) || (m.homeTeamId === teamBId && m.awayTeamId === teamAId)
+    );
 
-      const teamAWins = history.filter(
-        m => (m.homeTeamId === teamAId && m.homeScore > m.awayScore) || (m.awayTeamId === teamAId && m.awayScore > m.homeScore)
-      ).length;
+    const teamAWins = history.filter(
+      m => (m.homeTeamId === teamAId && m.homeScore > m.awayScore) || (m.awayTeamId === teamAId && m.awayScore > m.homeScore)
+    ).length;
 
-      const teamBWins = history.filter(
-        m => (m.homeTeamId === teamBId && m.homeScore > m.awayScore) || (m.awayTeamId === teamBId && m.awayScore > m.homeScore)
-      ).length;
+    const teamBWins = history.filter(
+      m => (m.homeTeamId === teamBId && m.homeScore > m.awayScore) || (m.awayTeamId === teamBId && m.awayScore > m.homeScore)
+    ).length;
 
-      const draws = history.filter(m => m.homeScore === m.awayScore).length;
+    const draws = history.filter(m => m.homeScore === m.awayScore).length;
 
-      return {
-        teamAWins,
-        teamBWins,
-        draws,
-        history: history.sort((a, b) => b.season - a.season)
-      };
-    }
+    return {
+      teamAWins,
+      teamBWins,
+      draws,
+      history: history.sort((a, b) => b.season - a.season)
+    };
+  }
 
   public getUpToDateTeamsForInternationalComp(competition: InternationalCompetition): Team[] {
-      if(competition.status === 'playoffs') {
+    if (competition.status === 'playoffs') {
       return competition.teams;
     }
     const teamsFromLeague = competition.leaguePhase.flatMap((g: Division) => g.teams);

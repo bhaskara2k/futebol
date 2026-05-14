@@ -200,10 +200,25 @@
                 <span class="text-[9px] text-gray-500 uppercase font-black tracking-widest">Jogo de Ida</span>
                 @if(match.leg1Played) {
                 <button (click)="viewMatchDetails.emit({ cupMatch: match, leg: 1 })"
-                  class="flex items-center gap-3 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-400 p-2 rounded-xl transition-all group/leg">
-                  <span class="text-2xl font-black text-white px-2">{{match.homeScoreLeg1}}</span>
+                  class="flex items-center gap-2 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-400 p-2 rounded-xl transition-all group/leg">
+                  
+                  <!-- Time que mandou a ida (Home) -->
+                  <div class="flex items-center gap-2 pr-1">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-lg p-1 border border-white/5">
+                      <img [src]="universeService.getTeamCrest(match.homeTeam)" class="max-w-full max-h-full object-contain" (error)="tryPngFallback($event)">
+                    </div>
+                    <span class="text-2xl font-black text-white">{{match.homeScoreLeg1}}</span>
+                  </div>
+
                   <div class="w-px h-6 bg-white/10 group-hover/leg:bg-white/30"></div>
-                  <span class="text-2xl font-black text-white px-2">{{match.awayScoreLeg1}}</span>
+
+                  <!-- Time que jogou fora a ida (Away) -->
+                  <div class="flex items-center gap-2 pl-1">
+                    <span class="text-2xl font-black text-white">{{match.awayScoreLeg1}}</span>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-lg p-1 border border-white/5">
+                      <img [src]="universeService.getTeamCrest(match.awayTeam)" class="max-w-full max-h-full object-contain" (error)="tryPngFallback($event)">
+                    </div>
+                  </div>
                 </button>
                 } @else {
                 <div class="flex gap-1 w-full max-w-[150px]">
@@ -225,10 +240,25 @@
                 <span class="text-[9px] text-gray-500 uppercase font-black tracking-widest">Jogo de Volta</span>
                 @if(match.leg2Played) {
                 <button (click)="viewMatchDetails.emit({ cupMatch: match, leg: 2 })"
-                  class="flex items-center gap-3 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-400 p-2 rounded-xl transition-all group/leg">
-                  <span class="text-2xl font-black text-white px-2">{{match.homeScoreLeg2}}</span>
+                  class="flex items-center gap-2 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-400 p-2 rounded-xl transition-all group/leg">
+                  
+                  <!-- Time que mandou a volta (Away Team do objeto, mas Home do jogo 2) -->
+                  <div class="flex items-center gap-2 pr-1">
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-lg p-1 border border-white/5">
+                      <img [src]="universeService.getTeamCrest(match.awayTeam)" class="max-w-full max-h-full object-contain" (error)="tryPngFallback($event)">
+                    </div>
+                    <span class="text-2xl font-black text-white">{{match.homeScoreLeg2}}</span>
+                  </div>
+
                   <div class="w-px h-6 bg-white/10 group-hover/leg:bg-white/30"></div>
-                  <span class="text-2xl font-black text-white px-2">{{match.awayScoreLeg2}}</span>
+
+                  <!-- Time que jogou fora a volta (Home Team do objeto, mas Away do jogo 2) -->
+                  <div class="flex items-center gap-2 pl-1">
+                    <span class="text-2xl font-black text-white">{{match.awayScoreLeg2}}</span>
+                    <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-black/20 rounded-lg p-1 border border-white/5">
+                      <img [src]="universeService.getTeamCrest(match.homeTeam)" class="max-w-full max-h-full object-contain" (error)="tryPngFallback($event)">
+                    </div>
+                  </div>
                 </button>
                 } @else {
                 <div class="flex gap-1 w-full max-w-[150px]">

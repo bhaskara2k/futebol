@@ -543,13 +543,19 @@ export class SimulationService {
 
   private _calculateMatchScore(homeOverall: number, awayOverall: number): { homeGoals: number, awayGoals: number } {
     const generateGoals = (teamOverall: number, opponentOverall: number, isHome: boolean): number => {
-      let lambda = teamOverall / 45;
+      // Base lambda mais realista (divisor maior reduz a média de gols)
+      let lambda = teamOverall / 68; 
+      
       if (isHome) {
-        lambda += 0.2;
+        lambda += 0.18; // Vantagem de casa levemente reduzida
       }
+      
       const diff = teamOverall - opponentOverall;
-      lambda += diff / 25;
-      lambda = Math.max(0.2, lambda);
+      lambda += diff / 40; // O peso da diferença de qualidade é mais sutil
+      
+      lambda = Math.max(0.15, lambda);
+      
+      // Algoritmo de Poisson (Knuth)
       const L = Math.exp(-lambda);
       let p = 1.0;
       let k = 0;
@@ -557,12 +563,35 @@ export class SimulationService {
         k++;
         p *= Math.random();
       } while (p > L);
-      const goals = k - 1;
-      return Math.min(goals, 8);
+      
+      let goals = k - 1;
+
+      // Lógica de "Saturação": Placares altos são muito mais difíceis de acontecer
+      // Se o sorteio inicial for alto, aplicamos uma "barreira" de probabilidade
+      if (goals > 3) {
+        const excess = goals - 3;
+        let reducedExcess = 0;
+        for (let i = 0; i < excess; i++) {
+          // A cada gol extra acima de 3, a chance de ele "existir" cai drasticamente
+          if (Math.random() < 0.35) { 
+            reducedExcess++;
+          }
+        }
+        goals = 3 + reducedExcess;
+      }
+
+      return Math.min(goals, 10); // Teto absoluto, mas raríssimo chegar aqui
     };
 
-    const homeGoals = generateGoals(homeOverall, awayOverall, true);
-    const awayGoals = generateGoals(awayOverall, homeOverall, false);
+    let homeGoals = generateGoals(homeOverall, awayOverall, true);
+    let awayGoals = generateGoals(awayOverall, homeOverall, false);
+
+    // Ajuste de "Equilíbrio de Jogo": Se o placar total for muito alto (ex: 5-4), 
+    // há uma chance de o jogo ter "esfriado" na vida real.
+    if (homeGoals + awayGoals > 6 && Math.random() < 0.6) {
+      if (homeGoals > 3) homeGoals -= 1;
+      if (awayGoals > 3) awayGoals -= 1;
+    }
 
     return { homeGoals, awayGoals };
   }

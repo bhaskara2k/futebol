@@ -43,8 +43,8 @@ interface SaveSlot {
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
           
-          <!-- Seção de Criação -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <!-- Seção de Criação e Importação -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div class="p-8 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-2xl border border-white/5 relative group">
               <div class="absolute -top-3 left-6 px-3 py-1 bg-indigo-600 rounded-lg text-[10px] font-bold text-white uppercase tracking-wider">Novo Slot</div>
               
@@ -62,6 +62,23 @@ interface SaveSlot {
                   class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-900/20">
                   <i class="fas fa-plus-circle"></i>
                   Criar Novo Universo
+                </button>
+              </div>
+            </div>
+
+            <!-- Card de Importação de Backup Local -->
+            <div class="p-8 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 rounded-2xl border border-white/5 relative group flex flex-col justify-center">
+              <div class="absolute -top-3 left-6 px-3 py-1 bg-teal-600 rounded-lg text-[10px] font-bold text-white uppercase tracking-wider">Restaurar Backup</div>
+              
+              <div class="flex flex-col items-center justify-center text-center gap-3">
+                <i class="fas fa-file-import text-3xl text-teal-500 mb-2"></i>
+                <h3 class="text-white font-bold">Importar Arquivo JSON</h3>
+                <p class="text-xs text-gray-500 mb-3">Carregue um backup local para restaurar seu jogo.</p>
+                <input type="file" #fileInput (change)="handleImport($event)" accept=".json" class="hidden" />
+                <button 
+                  (click)="fileInput.click()"
+                  class="w-full py-3 bg-white/5 hover:bg-white/10 text-teal-400 font-bold rounded-xl border border-teal-500/20 transition-all flex items-center justify-center gap-2">
+                  <i class="fas fa-upload"></i> Selecionar Arquivo
                 </button>
               </div>
             </div>
@@ -262,6 +279,7 @@ export class SavesManagerComponent {
   onUpdate = output<string | number>();
   onRename = output<{ id: string | number; name: string }>();
   onDelete = output<string | number>();
+  onImport = output<any>();
 
   newSaveName = signal('');
   renameId = signal<string | number | null>(null);
@@ -288,5 +306,23 @@ export class SavesManagerComponent {
     } catch (e) {
       return dateStr;
     }
+  }
+
+  handleImport(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        this.onImport.emit(json);
+      } catch (error) {
+        alert('Erro ao ler arquivo. JSON inválido.');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input
+    event.target.value = '';
   }
 }

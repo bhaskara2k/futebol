@@ -12,7 +12,7 @@
 <app-saves-manager [saves]="availableSaves()" [isLoading]="isLoadingSaves()" [activeId]="activeSaveId()"
   (onClose)="changeView('main_menu')" (onCreate)="saveName.set($event); createNewSave()" (onLoad)="loadSaveById($event)"
   (onUpdate)="updateExistingSave($event)" (onRename)="newSaveName.set($event.name); confirmRenameSave()"
-  (onDelete)="saveToDelete.set($event); deleteSave()" />
+  (onDelete)="saveToDelete.set($event); deleteSave()" (onImport)="importSaveFromJson($event)" />
 }
 <!-- MAGIC RENDERS LAYER (GLOBAL DECORATION) -->
 <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">

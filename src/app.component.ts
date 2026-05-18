@@ -2095,6 +2095,23 @@ export class AppComponent implements OnInit {
   }
 
   /**
+   * Importa um save de um arquivo JSON
+   */
+  importSaveFromJson(state: any) {
+    try {
+      this.universeService.loadFromFirebaseState(state);
+      this.isGameLoaded.set(true);
+      this.isSetupComplete.set(true);
+      this.lifecycle.syncStateAfterLoad();
+      this.changeView('main_menu');
+      console.log('✅ Backup restaurado com sucesso do JSON local.');
+    } catch (e) {
+      console.error('❌ Erro ao importar backup:', e);
+      alert('Erro ao importar backup: ' + e);
+    }
+  }
+
+  /**
    * Atualiza um save existente (sobrescreve)
    */
   async updateExistingSave(id: string) {

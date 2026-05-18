@@ -42,15 +42,11 @@ export class SeasonLifecycleService {
     async saveRound(roundNumber: number): Promise<any> {
         if (!this.currentSaveId) return;
 
-        const state = {
-            season: this.universeService.season(),
-            teams: this.universeService.teams(),
-            leagues: this.universeService.leagues(),
-            internationalComps: this.universeService.internationalCompetitions(),
-            summaries: this.universeService.seasonSummaries()
-        };
-
-        await this.firebaseService.saveGame(this.currentSaveId, state);
+        // Desativamos o salvamento automático no Firebase a cada rodada 
+        // para evitar que o limite de 20.000 escritas diárias seja atingido.
+        // O jogador precisará usar o "Quick Save" ou esperar o fim da temporada.
+        console.log(`[Auto-Save Bloqueado] Rodada ${roundNumber} concluída. Salvamento no Firebase desativado para economizar cota.`);
+        
         this.lastSavedRound = roundNumber;
         return { success: true };
     }

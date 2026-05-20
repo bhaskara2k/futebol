@@ -1153,6 +1153,7 @@ export class AppComponent implements OnInit {
         // SALVAR RODADA NO SQLITE (via lifecycle)
         await this.lifecycle.saveRound(league.currentRound + 1);
       }
+      this.cdr.markForCheck();
     }
 
   }
@@ -1257,6 +1258,7 @@ export class AppComponent implements OnInit {
     if (leagueId) {
       // FIX: Added await as the method is now async.
       await this.nationalCompetitionService.simulateLeagueMatch(leagueId, matchId);
+      this.cdr.markForCheck();
     }
   }
 
@@ -1422,6 +1424,7 @@ export class AppComponent implements OnInit {
         this.nationalCompetitionService.simulateCupRound(leagueId, event.roundName, event.cupType);
       }
     }
+    this.cdr.markForCheck();
   }
 
   onViewPlayerDetails(data: { player: Player, team: Team }): void {

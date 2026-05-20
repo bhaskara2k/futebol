@@ -94,13 +94,17 @@ export class NationalCompetitionService {
       league.divisions = [...league.divisions];
       const division = { ...league.divisions[divisionIndex] };
       
-      const roundFixtures = division.fixtures[league.currentRound];
-      if (roundFixtures) {
-        for (const match of roundFixtures) {
+      division.fixtures = [...division.fixtures];
+      const roundIdx = league.currentRound;
+      if (division.fixtures[roundIdx]) {
+        division.fixtures[roundIdx] = division.fixtures[roundIdx].map(match => {
           if (!match.played) {
-            this.simulationService.simulateMatch(match, division);
+            const matchClone = { ...match };
+            this.simulationService.simulateMatch(matchClone, division);
+            return matchClone;
           }
-        }
+          return match;
+        });
       }
 
       // Atualizamos os rankings de jogadores após as simulações
@@ -280,30 +284,42 @@ export class NationalCompetitionService {
       const leagueIndex = leagues.findIndex(l => l.countryId === leagueId);
       if (leagueIndex === -1) return leagues;
 
-      const league = leagues[leagueIndex];
-      const cupToSim =
-        cupType === 'league' && league.leagueCup ? league.leagueCup :
-          cupType === 'supercup' && league.supercup ? league.supercup :
-            league.cup;
-      const round = cupToSim.rounds.find((r: CupRound) => r.name === roundName);
+      const league = { ...leagues[leagueIndex] };
+      
+      // Clone a Copa específica
+      if (cupType === 'main') league.cup = { ...league.cup };
+      else if (cupType === 'league') league.leagueCup = { ...league.leagueCup! };
+      else if (cupType === 'supercup') league.supercup = { ...league.supercup! };
 
-      if (round) {
-        round.matches.forEach((match: CupMatch) => {
-          this.simulationService.simulateSingleCupLeg(match, round.name, 1, league, league.divisions.flatMap(d => d.teams), this.competitionService.addTrophyToTeam.bind(this.competitionService), (l: League) => {
-            if (cupType === 'main') this.competitionService.updateChampionshipRankings(l.rankings.cup, l.cup.champion);
-            else if (cupType === 'league') this.competitionService.updateChampionshipRankings(l.rankings.leagueCup, l.leagueCup?.champion);
-            else if (cupType === 'supercup') this.competitionService.updateChampionshipRankings(l.rankings.supercup, l.supercup?.champion);
-          }, () => { }, cupType);
-          this.simulationService.simulateSingleCupLeg(match, round.name, 2, league, league.divisions.flatMap(d => d.teams), this.competitionService.addTrophyToTeam.bind(this.competitionService), (l: League) => {
-            if (cupType === 'main') this.competitionService.updateChampionshipRankings(l.rankings.cup, l.cup.champion);
-            else if (cupType === 'league') this.competitionService.updateChampionshipRankings(l.rankings.leagueCup, l.leagueCup?.champion);
-            else if (cupType === 'supercup') this.competitionService.updateChampionshipRankings(l.rankings.supercup, l.supercup?.champion);
-          }, () => { }, cupType);
-        });
-        this.competitionService.advanceCupRound(league, cupType);
-        this.competitionService.updateCupPlayerRankings(league, cupType);
-      }
-      return [...leagues];
+      const cupToSim = cupType === 'league' ? league.leagueCup! : (cupType === 'supercup' ? league.supercup! : league.cup);
+      cupToSim.rounds = [...cupToSim.rounds];
+      
+      const roundIndex = cupToSim.rounds.findIndex(r => r.name === roundName);
+      if (roundIndex === -1) return leagues;
+      
+      const round = { ...cupToSim.rounds[roundIndex] };
+      round.matches = round.matches.map(m => ({ ...m }));
+      cupToSim.rounds[roundIndex] = round;
+
+      round.matches.forEach((match: CupMatch) => {
+        this.simulationService.simulateSingleCupLeg(match, round.name, 1, league, league.divisions.flatMap(d => d.teams), this.competitionService.addTrophyToTeam.bind(this.competitionService), (l: League) => {
+          if (cupType === 'main') this.competitionService.updateChampionshipRankings(l.rankings.cup, l.cup.champion);
+          else if (cupType === 'league') this.competitionService.updateChampionshipRankings(l.rankings.leagueCup, l.leagueCup?.champion);
+          else if (cupType === 'supercup') this.competitionService.updateChampionshipRankings(l.rankings.supercup, l.supercup?.champion);
+        }, () => { }, cupType);
+        this.simulationService.simulateSingleCupLeg(match, round.name, 2, league, league.divisions.flatMap(d => d.teams), this.competitionService.addTrophyToTeam.bind(this.competitionService), (l: League) => {
+          if (cupType === 'main') this.competitionService.updateChampionshipRankings(l.rankings.cup, l.cup.champion);
+          else if (cupType === 'league') this.competitionService.updateChampionshipRankings(l.rankings.leagueCup, l.leagueCup?.champion);
+          else if (cupType === 'supercup') this.competitionService.updateChampionshipRankings(l.rankings.supercup, l.supercup?.champion);
+        }, () => { }, cupType);
+      });
+      
+      this.competitionService.advanceCupRound(league, cupType);
+      this.competitionService.updateCupPlayerRankings(league, cupType);
+
+      const newLeagues = [...leagues];
+      newLeagues[leagueIndex] = league;
+      return newLeagues;
     });
   }
 

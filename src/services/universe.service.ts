@@ -2651,8 +2651,25 @@ export class UniverseService {
       t.stats = { points: 0, matchesPlayed: 0, wins: 0, draws: 0, losses: 0, goalsFor: 0, goalsAgainst: 0 };
     });
 
-    // 2. Reprocessar Ligas Nacionais
-    this.leagues().forEach(league => {
+    // 2. Verificar se estamos na fase de ligas nacionais (temporada regular) ou fase pós-temporada (internacionais)
+    const allLeagues = this.leagues();
+    const isRegularSeason = allLeagues.some(l => l.status === 'ongoing');
+
+    // Mapear times que estão jogando competições internacionais
+    const internationalTeams = new Set<string>();
+    this.internationalCompetitions().forEach(comp => {
+      if (comp.teams) {
+        comp.teams.forEach(t => internationalTeams.add(t.id));
+      }
+      if (comp.leaguePhase) {
+        comp.leaguePhase.forEach(div => {
+          div.teams.forEach(t => internationalTeams.add(t.id));
+        });
+      }
+    });
+
+    // 3. Reprocessar Ligas Nacionais
+    allLeagues.forEach(league => {
       league.divisions.forEach(div => {
         Object.values(div.fixtures).forEach(round => {
           round.forEach(match => {
@@ -2661,26 +2678,39 @@ export class UniverseService {
               const away = currentTeams.find(t => t.id === match.awayTeam.id);
 
               if (home && away) {
-                home.stats.matchesPlayed++;
-                away.stats.matchesPlayed++;
-                home.stats.goalsFor += match.homeScore;
-                away.stats.goalsFor += match.awayScore;
-                home.stats.goalsAgainst += match.awayScore;
-                away.stats.goalsAgainst += match.homeScore;
+                // Se estamos na temporada regular, sempre aplica as estatísticas da liga.
+                // Se estamos na pós-temporada, apenas aplica para times que NÃO estão jogando competições internacionais.
+                const shouldApplyHome = isRegularSeason || !internationalTeams.has(home.id);
+                const shouldApplyAway = isRegularSeason || !internationalTeams.has(away.id);
 
-                if (match.homeScore > match.awayScore) {
-                  home.stats.wins++;
-                  away.stats.losses++;
-                  home.stats.points += 3;
-                } else if (match.awayScore > match.homeScore) {
-                  away.stats.wins++;
-                  home.stats.losses++;
-                  away.stats.points += 3;
-                } else {
-                  home.stats.draws++;
-                  away.stats.draws++;
-                  home.stats.points += 1;
-                  away.stats.points += 1;
+                if (shouldApplyHome) {
+                  home.stats.matchesPlayed++;
+                  home.stats.goalsFor += match.homeScore;
+                  home.stats.goalsAgainst += match.awayScore;
+                  if (match.homeScore > match.awayScore) {
+                    home.stats.wins++;
+                    home.stats.points += 3;
+                  } else if (match.homeScore < match.awayScore) {
+                    home.stats.losses++;
+                  } else {
+                    home.stats.draws++;
+                    home.stats.points += 1;
+                  }
+                }
+
+                if (shouldApplyAway) {
+                  away.stats.matchesPlayed++;
+                  away.stats.goalsFor += match.awayScore;
+                  away.stats.goalsAgainst += match.homeScore;
+                  if (match.awayScore > match.homeScore) {
+                    away.stats.wins++;
+                    away.stats.points += 3;
+                  } else if (match.awayScore < match.homeScore) {
+                    away.stats.losses++;
+                  } else {
+                    away.stats.draws++;
+                    away.stats.points += 1;
+                  }
                 }
               }
             }
@@ -2689,72 +2719,60 @@ export class UniverseService {
       });
     });
 
-    // 3. Reprocessar Competições Internacionais (Fase de Liga e Grupos)
-    this.internationalCompetitions().forEach(comp => {
-      if (comp.leaguePhase) {
-        comp.leaguePhase.forEach(div => {
-          Object.values(div.fixtures).forEach(round => {
-            round.forEach(match => {
-              if (match.played && match.homeScore !== undefined && match.awayScore !== undefined) {
-                const home = currentTeams.find(t => t.id === match.homeTeam.id);
-                const away = currentTeams.find(t => t.id === match.awayTeam.id);
-                if (home && away) this._applyStats(home, away, match.homeScore, match.awayScore);
-              }
+    // 4. Reprocessar Competições Internacionais (Fase de Liga e Grupos)
+    // Apenas se NÃO estivermos na temporada regular, aplicamos estatísticas internacionais.
+    if (!isRegularSeason) {
+      this.internationalCompetitions().forEach(comp => {
+        if (comp.leaguePhase) {
+          comp.leaguePhase.forEach(div => {
+            Object.values(div.fixtures).forEach(round => {
+              round.forEach(match => {
+                if (match.played && match.homeScore !== undefined && match.awayScore !== undefined) {
+                  const home = currentTeams.find(t => t.id === match.homeTeam.id);
+                  const away = currentTeams.find(t => t.id === match.awayTeam.id);
+                  if (home && away && internationalTeams.has(home.id)) {
+                    this._applyStats(home, away, match.homeScore, match.awayScore);
+                  }
+                }
+              });
             });
           });
+        }
+
+        // Reprocessar Mata-mata Internacional (Playoffs e Knockout)
+        [comp.playoffPhase, comp.knockoutPhase].forEach(cup => {
+          if (cup && cup.rounds) {
+            cup.rounds.forEach(round => {
+              round.matches.forEach(m => {
+                // Ida
+                if (m.leg1Played && m.homeScoreLeg1 !== undefined && m.awayScoreLeg1 !== undefined) {
+                  const home = currentTeams.find(t => t.id === m.homeTeam.id);
+                  const away = currentTeams.find(t => t.id === m.awayTeam.id);
+                  if (home && away && internationalTeams.has(home.id)) {
+                    this._applyStats(home, away, m.homeScoreLeg1, m.awayScoreLeg1);
+                  }
+                }
+                // Volta
+                if (m.leg2Played && m.homeScoreLeg2 !== undefined && m.awayScoreLeg2 !== undefined) {
+                  const home = currentTeams.find(t => t.id === m.awayTeam.id); // Invertido na volta
+                  const away = currentTeams.find(t => t.id === m.homeTeam.id);
+                  if (home && away && internationalTeams.has(home.id)) {
+                    this._applyStats(home, away, m.homeScoreLeg2, m.awayScoreLeg2);
+                  }
+                }
+              });
+            });
+          }
         });
-      }
-
-      // Reprocessar Mata-mata Internacional (Playoffs e Knockout)
-      [comp.playoffPhase, comp.knockoutPhase].forEach(cup => {
-        if (cup && cup.rounds) {
-          cup.rounds.forEach(round => {
-            round.matches.forEach(m => {
-              // Ida
-              if (m.leg1Played && m.homeScoreLeg1 !== undefined && m.awayScoreLeg1 !== undefined) {
-                const home = currentTeams.find(t => t.id === m.homeTeam.id);
-                const away = currentTeams.find(t => t.id === m.awayTeam.id);
-                if (home && away) this._applyStats(home, away, m.homeScoreLeg1, m.awayScoreLeg1);
-              }
-              // Volta
-              if (m.leg2Played && m.homeScoreLeg2 !== undefined && m.awayScoreLeg2 !== undefined) {
-                const home = currentTeams.find(t => t.id === m.awayTeam.id); // Invertido na volta
-                const away = currentTeams.find(t => t.id === m.homeTeam.id);
-                if (home && away) this._applyStats(home, away, m.homeScoreLeg2, m.awayScoreLeg2);
-              }
-            });
-          });
-        }
       });
-    });
+    }
 
-    // 4. Reprocessar Copas Nacionais
-    this.leagues().forEach(league => {
-      [league.cup, league.leagueCup, league.supercup].forEach(cup => {
-        if (cup && cup.rounds) {
-          cup.rounds.forEach(round => {
-            round.matches.forEach(m => {
-              // Ida
-              if (m.leg1Played && m.homeScoreLeg1 !== undefined && m.awayScoreLeg1 !== undefined) {
-                const home = currentTeams.find(t => t.id === m.homeTeam.id);
-                const away = currentTeams.find(t => t.id === m.awayTeam.id);
-                if (home && away) this._applyStats(home, away, m.homeScoreLeg1, m.awayScoreLeg1);
-              }
-              // Volta
-              if (m.leg2Played && m.homeScoreLeg2 !== undefined && m.awayScoreLeg2 !== undefined) {
-                const home = currentTeams.find(t => t.id === m.awayTeam.id); // Invertido na volta
-                const away = currentTeams.find(t => t.id === m.homeTeam.id);
-                if (home && away) this._applyStats(home, away, m.homeScoreLeg2, m.awayScoreLeg2);
-              }
-            });
-          });
-        }
-      });
-    });
+    // 5. Copas nacionais NUNCA devem ser adicionadas a t.stats (Copas são mata-mata sem tabela)
+    // Portanto, removemos completamente o reprocessamento de Copas Nacionais daqui.
 
-    // 5. Forçar atualização do sinal
+    // 6. Forçar atualização do sinal
     this.teams.set([...currentTeams]);
-    console.log('✅ Recalibragem total concluída!');
+    console.log('✅ Recalibragem total concluída de forma segura!');
   }
 
   /**
